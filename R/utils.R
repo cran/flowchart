@@ -6,6 +6,7 @@
 #'@param x old horizontal position of the boxes
 #'@param i position of the flowchart within the list of flowcharts.
 #'@param n number of total flowcharts to merge
+#'@keywords internal
 #'
 update_x <- function(x, i, n) {
 
@@ -24,6 +25,7 @@ update_x <- function(x, i, n) {
 #'@param y old height of the boxes
 #'@param type type of box
 #'@param x horizontal position of the boxes
+#'@keywords internal
 #'
 update_y <- function(y, type, x) {
 
@@ -33,10 +35,9 @@ update_y <- function(y, type, x) {
 
   for(i in 1:length(yold)) {
 
-    y <- dplyr::case_match(
-      y,
-      yold[i] ~ yval[i],
-      .default = y
+    y <- dplyr::case_when(
+      y %in% yold[i] ~ yval[i],
+      TRUE ~ y
     )
 
   }
@@ -68,6 +69,7 @@ update_y <- function(y, type, x) {
 #'@param type type of the boxes
 #'@param i position of the flowchart within the list of flowcharts.
 #'@param n number of total flowcharts to merge
+#'@keywords internal
 #'
 update_y_stack <- function(y, x, type, i, n) {
 
@@ -104,6 +106,7 @@ update_y_stack <- function(y, x, type, i, n) {
 #'
 #'@param x element to check
 #'@param class desired class to check
+#'@keywords internal
 #'
 is_class <- function(x, class) {
   if (!inherits(x, class)) {

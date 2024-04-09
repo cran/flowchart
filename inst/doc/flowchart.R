@@ -27,6 +27,9 @@ class(fc)
 str(fc)
 
 ## -----------------------------------------------------------------------------
+fc2 <- as_fc(N = 230)
+
+## -----------------------------------------------------------------------------
 fc |> 
   fc_draw()
 
@@ -38,9 +41,22 @@ clinic_patient |>
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
 clinic_patient |> 
+  as_fc(label = "Patients included") |> 
+  fc_filter(N = 200, label = "Patients included", show_exc = TRUE) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+clinic_patient |> 
   filter(!is.na(group)) |> 
   as_fc(label = "Patients included") |> 
   fc_split(group) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+clinic_patient |> 
+  filter(!is.na(group)) |> 
+  as_fc(label = "Patients included") |> 
+  fc_split(N = c(100, 100), label = c("Control", "Treatment")) |> 
   fc_draw()
 
 ## ----fig.width = 8------------------------------------------------------------
@@ -111,13 +127,21 @@ fc |>
               )) |> 
   fc_draw()
 
+## ----eval = FALSE-------------------------------------------------------------
+#  clinic_patient |>
+#    filter(!is.na(group)) |>
+#    as_fc(label = "Patients included") |>
+#    fc_split(group) |>
+#    fc_draw() |>
+#    fc_export("flowchart.png")
+
 ## ----warning = FALSE, fig.width = 7, fig.height = 6---------------------------
 clinic_patient |> 
   as_fc(label = "Available patients") |> 
   fc_filter(age >= 18 & consent == "Yes", label = "Patients included", show_exc = TRUE) |> 
   fc_split(group) |> 
   fc_filter(n_visits == 2, label = "Two visits available", show_exc = TRUE) |> 
-  fc_split(marker_alt, label = c("Marker not alterated", "Marker alterated")) |> 
+  fc_split(marker_alt, label = c("Marker not altered", "Marker altered")) |> 
   fc_draw()
 
 ## ----warning=FALSE, fig.width = 9, fig.height = 7-----------------------------
@@ -133,7 +157,7 @@ label_exc <- paste(
 label_exc <- gsub("exclusion criteria", "exclusion criteria:", label_exc)
 
 safo1 <- safo |> 
-  filter(group == "cloxacilin alone", !is.na(reason_pp)) |> 
+  filter(group == "cloxacillin alone", !is.na(reason_pp)) |> 
   mutate(reason_pp = droplevels(reason_pp))
 
 label_exc1 <- paste(
@@ -144,7 +168,7 @@ label_exc1 <- paste(
 label_exc1 <- str_replace_all(label_exc1, c("resistant" = "resistant\n", "blood" = "blood\n"))
 
 safo2 <- safo |> 
-  filter(group == "cloxacilin plus fosfomycin", !is.na(reason_pp)) |> 
+  filter(group == "cloxacillin plus fosfomycin", !is.na(reason_pp)) |> 
   mutate(reason_pp = droplevels(reason_pp))
 
 label_exc2 <- paste(
@@ -154,9 +178,9 @@ label_exc2 <- paste(
 
 label_exc2 <- str_replace_all(label_exc2, c("nosocomial" = "nosocomial\n", "treatment" = "treatment\n"))
 
-## ----warning=FALSE, fig.width = 10, fig.height = 7----------------------------
+## ----warning=FALSE, fig.width = 11, fig.height = 7----------------------------
 safo |> 
-  as_fc("patients assessed for eligibility", text_pattern = "{n} {label}") |> 
+  as_fc(label = "patients assessed for eligibility", text_pattern = "{n} {label}") |> 
   fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE,
             just_exc = "left", text_pattern_exc = "{label}", label_exc = label_exc, text_fs_exc = 7) |>
   fc_split(group, text_pattern = "{n} {label}") |> 
@@ -171,9 +195,16 @@ safo |>
       filter(id != 9) |> 
       mutate(
         text = case_when(id == 11 ~ label_exc1, id == 13 ~ label_exc2, TRUE ~ text),
-        x = case_when(id == 3 ~ 0.8, id %in% c(7, 11) ~ 0.15, id == 13 ~ x + 0.035, TRUE ~ x),
-        y = case_when(id == 3 ~ y + 0.015, TRUE ~ y)
+        x = case_when(id == 3 ~ x + 0.15, id %in% c(11, 13) ~ x + 0.01, TRUE ~ x),
+        y = case_when(id %in% c(1, 3) ~ y + 0.05, id >= 2 ~ y - 0.05, TRUE ~ y)
       )
   ) |> 
+  fc_draw()
+
+## ----warning=FALSE, fig.width = 7, fig.height = 4.5---------------------------
+as_fc(N = 300) |> 
+  fc_filter(N = 240, label = "Randomized patients", show_exc = TRUE) |> 
+  fc_split(N = c(100, 80, 60), label = c("Group A", "Group B", "Group C")) |>
+  fc_filter(N = c(80, 75, 50), label = "Finished the study") |> 
   fc_draw()
 

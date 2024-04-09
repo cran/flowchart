@@ -3,6 +3,7 @@
 #'
 #' @param object fc object that we want to filter.
 #' @param filter Expression that returns a logical value and are defined in terms of the variables in the data frame. The data base will be filtered by this expression, and it will create a box showing the number of rows satisfying this condition.
+#' @param N Number of rows after the filter in case `filter` is NULL.
 #' @param label Character that will be the title of the box. By default it will be the evaluated condition.
 #' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".
 #' @param show_exc Logical value. If TRUE a box showing the number of excluded rows will be added to the flow chart.
@@ -10,6 +11,7 @@
 #' @param label_exc Character that will be the title of the added box showing the excluded patients. By default it will show "Excluded".
 #' @param text_pattern_exc Structure that will have the text in each of the excluded boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".
 #' @param sel_group Specify if the filtering has to be done only by one of the previous groups. By default is NULL.
+#' @param round_digits Number of digits to round percentages. It is 2 by default.
 #' @param just Justification for the text: left, center or right. Default is center.
 #' @param text_color Color of the text. It is black by default.
 #' @param text_fs Font size of the text. It is 8 by default.
@@ -30,36 +32,86 @@
 #'
 #' @export
 #' @importFrom rlang .data
+#' @importFrom rlang :=
 
-fc_filter <- function(object, filter, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, just = "center", text_color = "black", text_fs = 8, bg_fill = "white", border_color = "black", just_exc = "center", text_color_exc = "black", text_fs_exc = 6, bg_fill_exc = "white", border_color_exc = "black") {
+fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, just = "center", text_color = "black", text_fs = 8, bg_fill = "white", border_color = "black", just_exc = "center", text_color_exc = "black", text_fs_exc = 6, bg_fill_exc = "white", border_color_exc = "black") {
 
   is_class(object, "fc")
 
-  filter_txt <- paste(deparse(substitute(filter)), collapse = "")
-  filter_txt <- gsub("  ", "", filter_txt)
+  filter <- paste(deparse(substitute(filter)), collapse = "")
+  filter <- gsub("  ", "", filter)
+
+  if(filter == "NULL" & is.null(N)) {
+    stop("Either `filter` or `N` arguments have to be specified.")
+  }else if(filter != "NULL" & !is.null(N)) {
+    stop("`filter` and `N` arguments cannot be specified simultaneously.")
+  }
+
+  if(filter == "NULL") {
+    num <- length(grep("filter\\d+", names(object$data)))
+    filter <- stringr::str_glue("filter{num + 1}")
+
+    if(is.null(attr(object$data, "groups"))) {
+      if(length(N) > 1) {
+        stop("The length of `N` has to be 1.")
+      }
+    } else {
+      if(length(N) != nrow(attr(object$data, "groups"))) {
+        stop(stringr::str_glue("The length of `N` has to match the number of groups in the dataset: {nrow(attr(object$data, 'groups'))}"))
+      }
+    }
+
+
+    object$data$row_number_delete <- 1:nrow(object$data)
+    #select rows to be true the filter
+    nrows <- dplyr::group_rows(object$data)
+    filt_rows <- unlist(purrr::map(seq_along(nrows), function (x) {
+      if(N[x] > length(nrows[[x]])) {
+        stop("The number of rows after the filter specified in N can't be greater than the original number of rows")
+      } else {
+        nrows[[x]][1:N[x]]
+      }
+      }))
+
+    object$data <- object$data |>
+      dplyr::mutate(
+        "{filter}" := dplyr::case_when(
+          .data$row_number_delete %in% filt_rows ~ TRUE,
+          TRUE ~ FALSE
+        )
+      ) |>
+      dplyr::select(-"row_number_delete")
+
+  }
+
   if(is.null(label)) {
-    label <- filter_txt
+    label <- filter
   }
 
-  #Fiquem les posicions horitzontals
-  if(!is.null(attr(object$data, "groups"))) {
-    nhor <- nrow(attr(object$data, "groups"))
-  } else {
-    nhor <- 1
-  }
-
-  xval <-  seq(0, 1, by = 1/(nhor + 1))
-  xval <- xval[!xval %in% c(0, 1)]
+  group0 <- names(attr(object$data, "groups"))
+  group0 <- group0[group0 != ".rows"]
 
   new_fc <- object$data |>
     dplyr::summarise(
-      n = sum({{filter}}, na.rm = TRUE),
+      n = sum(eval(parse(text = filter)), na.rm = TRUE),
       N = dplyr::n()
-    ) |>
+    )
+
+  if(is.null(group0)) {
+    new_fc$group <- NA
+  } else {
+    new_fc <- new_fc |>
+      tidyr::unite("group", c(tidyselect::all_of(group0)), sep = ", ", na.rm = TRUE)
+  }
+
+  new_fc <- new_fc |>
+    dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude") |> dplyr::select("x", "group"), by = "group") |>
+    dplyr::group_by(.data$group) |>
+    dplyr::slice_tail(n = 1) |>
+    dplyr::ungroup() |>
     dplyr::mutate(
-      x = xval,
       y = NA,
-      perc = round(.data$n*100/.data$N, 2),
+      perc = round(.data$n*100/.data$N, round_digits),
       text = as.character(stringr::str_glue(text_pattern)),
       type = "filter",
       just = just,
@@ -67,19 +119,8 @@ fc_filter <- function(object, filter, label = NULL, text_pattern = "{label}\n {n
       text_fs = text_fs,
       bg_fill = bg_fill,
       border_color = border_color
-    )
-
-  group0 <- names(attr(object$data, "groups"))
-  group0 <- group0[group0 != ".rows"]
-
-  if(length(group0) > 0) {
-    new_fc <- new_fc |>
-      tidyr::unite("group", tidyselect::all_of(group0), sep = ", ") |>
-      dplyr::ungroup()
-  } else {
-    new_fc <- new_fc |>
-      dplyr::mutate(group = NA)
-  }
+    ) |>
+    dplyr::ungroup()
 
 
   if(is.null(sel_group)) {
@@ -121,6 +162,24 @@ fc_filter <- function(object, filter, label = NULL, text_pattern = "{label}\n {n
       direction_exc == "left" ~ -0.15,
       TRUE ~ NA
     )
+    #For the box to not escape the margins:
+    x_margin <- new_fc |>
+      dplyr::mutate(
+        limit = dplyr::case_when(
+          .data$x + add_x <= 0 ~ -.data$x/2,
+          .data$x + add_x >= 1 ~ (1 - .data$x)/2,
+          TRUE ~ NA
+        )
+      ) |>
+      dplyr::filter(!is.na(.data$limit))
+
+    if(nrow(x_margin) > 0) {
+      min_add <- min(abs(x_margin$limit))
+      add_x <- dplyr::case_when(
+        sign(add_x) != sign(min_add) ~ min_add*(-1),
+        TRUE ~ min_add
+      )
+    }
 
     #Calculate the middle distance between the box and the parent
     new_fc <- object$fc |>
@@ -140,10 +199,9 @@ fc_filter <- function(object, filter, label = NULL, text_pattern = "{label}\n {n
         y = purrr::map2_dbl(.data$parent, .data$y, ~(.y + .x$y)/2),
         n = purrr::map2_int(.data$parent, .data$n, ~.x$n - .y),
         N = purrr::map_int(.data$parent, ~.x$n),
-        perc = purrr::map2_dbl(.data$n, .data$N, ~round(.x*100/.y, 2)),
+        perc = purrr::map2_dbl(.data$n, .data$N, ~round(.x*100/.y, round_digits)),
         text = as.character(stringr::str_glue(text_pattern_exc)),
         type = "exclude",
-        group = NA,
         just = just_exc,
         text_color = text_color_exc,
         text_fs = text_fs_exc,
@@ -174,7 +232,7 @@ fc_filter <- function(object, filter, label = NULL, text_pattern = "{label}\n {n
 
   #Quan fem un filter la bbdd ha de quedar filtrada
   object$data <- object$data |>
-    dplyr::filter({{filter}})
+    dplyr::filter(eval(parse(text = filter)))
 
   object
 

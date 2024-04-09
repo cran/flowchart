@@ -6,11 +6,14 @@
 \usage{
 fc_split(
   object,
-  var,
+  var = NULL,
+  N = NULL,
   label = NULL,
   text_pattern = "{label}\\n {n} ({perc}\%)",
   sel_group = NULL,
   na.rm = FALSE,
+  show_zero = FALSE,
+  round_digits = 2,
   just = "center",
   text_color = "black",
   text_fs = 8,
@@ -23,6 +26,8 @@ fc_split(
 
 \item{var}{variable column of the database from which it will be splitted.}
 
+\item{N}{Number of rows after the split in case `var` is NULL.}
+
 \item{label}{Vector of characters with the label of each category in order. It has to have as many elements as categories has the column. By default, it will put the labels of the categories.}
 
 \item{text_pattern}{Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".}
@@ -30,6 +35,10 @@ fc_split(
 \item{sel_group}{Specify if the splitting has to be done only by one of the previous groups. By default is NULL.}
 
 \item{na.rm}{logical. Should missing values of the grouping variable be removed? Default is FALSE.}
+
+\item{show_zero}{logical. Should the levels of the grouping variable that don't have an event be shown? Default is FALSE.}
+
+\item{round_digits}{Number of digits to round percentages. It is 2 by default.}
 
 \item{just}{Justification for the text: left, center or right. Default is center.}
 

@@ -2,9 +2,11 @@
 
 export(as_fc)
 export(fc_draw)
+export(fc_export)
 export(fc_filter)
 export(fc_merge)
 export(fc_modify)
 export(fc_split)
 export(fc_stack)
+importFrom(rlang,":=")
 importFrom(rlang,.data)
