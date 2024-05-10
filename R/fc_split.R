@@ -97,8 +97,6 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
 
   }
 
-  N <- nrow(object$data)
-
   if(na.rm) {
     object$data <- object$data |>
       dplyr::filter_at(var, ~!is.na(.x))
@@ -125,11 +123,32 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
     new_fc$label <- factor(new_fc$label, levels = unique(new_fc$label), labels = label)
   }
 
+  if(!is.null(attr(object$data, "groups"))) {
+
+    Ndata <- object$data |>
+      dplyr::count(name = "N")
+
+    group0 <- names(attr(object$data, "groups"))
+    group0 <- group0[group0 != ".rows"]
+
+    new_fc <- new_fc |>
+      dplyr::left_join(Ndata, by = group0)
+
+  } else {
+
+    new_fc <- new_fc |>
+      dplyr::mutate(
+        N = nrow(object$data)
+      )
+
+    group0 <- NULL
+
+  }
+
   new_fc <- new_fc |>
     dplyr::mutate(
       x = NA,
       y = NA,
-      N = N,
       perc = round(.data$n*100/.data$N, round_digits),
       text = as.character(stringr::str_glue(text_pattern)),
       type = "split",
@@ -139,10 +158,6 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
       bg_fill = bg_fill,
       border_color = border_color
     )
-
-  #Quan fem un split la bbdd ha de quedar agrupada per saber després si les caixetes que venen a continuació s'han de fer per a cada grup o no!
-  group0 <- names(attr(object$data, "groups"))
-  group0 <- group0[group0 != ".rows"]
 
   object$data <- object$data |>
     dplyr::group_by_at(c(group0, var), .drop = FALSE)
@@ -173,10 +188,13 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
         center = unique(.data$x)
       )
 
-    xval <- new_fc |>
-      dplyr::group_by(.data$group) |>
-      dplyr::summarise(
-        nboxes = dplyr::n()
+    xval <- tibble::tibble(group = unique(new_fc$group)) |>
+      dplyr::mutate(
+        label = purrr::map(.data$group, ~new_fc |>
+                             dplyr::filter(.data$group == .) |>
+                             dplyr::distinct(.data$label)
+                             ),
+        nboxes = purrr::map_dbl(.data$label, nrow)
       ) |>
       dplyr::left_join(
         object_center, by = "group"
@@ -205,9 +223,15 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
 
         })
       ) |>
-      dplyr::pull("x")
+      dplyr::select("group", "label", "x") |>
+      tidyr::unnest(c("label", "x"))
 
-    new_fc$x <- unlist(xval)
+    #Juntar new_fc amb xval
+
+    new_fc <- new_fc |>
+      dplyr::select(-"x") |>
+      dplyr::left_join(xval, by = c("group", "label")) |>
+      dplyr::relocate("x", .before = "y")
 
     }
 

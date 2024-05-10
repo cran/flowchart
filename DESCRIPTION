@@ -1,7 +1,7 @@
 Package: flowchart
 Type: Package
 Title: Tidy Flowchart Generator
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Pau", "Satorra", email = "psatorra@igtp.cat", role = c("aut", "cre")),
     person("João", "Carmezim", role = c("aut")),
@@ -22,10 +22,10 @@ Depends: R (>= 4.1.0)
 RoxygenNote: 7.2.3
 URL: https://bruigtp.github.io/flowchart/
 NeedsCompilation: no
-Packaged: 2024-04-09 13:17:17 UTC; psatorra
+Packaged: 2024-05-10 12:28:55 UTC; psatorra
 Author: Pau Satorra [aut, cre],
   João Carmezim [aut],
   Natàlia Pallarès [aut],
   Cristian Tebé [aut]
 Repository: CRAN
-Date/Publication: 2024-04-09 13:40:02 UTC
+Date/Publication: 2024-05-10 12:50:02 UTC
