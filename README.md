@@ -1,4 +1,6 @@
-# flowchart
+# flowchart <a href="https://bruigtp.github.io/flowchart/"><img src="man/figures/logo.png" align="right" height="138" alt="flowchart website" /></a>
+
+[![CRAN status](https://www.r-pkg.org/badges/version/flowchart)](https://cran.r-project.org/package=flowchart) &#160;&#160; [![R-CMD-check](https://github.com/bruigtp/flowchart/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bruigtp/flowchart/actions/workflows/R-CMD-check.yaml) &#160;&#160; [![downloads](http://cranlogs.r-pkg.org/badges/flowchart)](https://cranlogs.r-pkg.org:443/) &#160;&#160; [![total](http://cranlogs.r-pkg.org/badges/grand-total/flowchart)](https://cranlogs.r-pkg.org:443/)
 
 ## Tidy Flowchart Generator
 
@@ -30,7 +32,7 @@ Package: flowchart
 
 Type: Package
 
-Version: 0.3.0 (CRAN)
+Version: 0.4.0 (CRAN)
 
 Authors: Pau Satorra, João Carmezim, Natàlia Pallarés, Cristian Tebé.
 

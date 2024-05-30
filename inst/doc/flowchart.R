@@ -9,149 +9,144 @@ library(tibble)
 ## ----eval=FALSE---------------------------------------------------------------
 #  install.packages("flowchart")
 
-## -----------------------------------------------------------------------------
-data(clinic_patient)
-data(clinic_visit)
-
-# Per patient dataset
-str(clinic_patient)
-
-# Per visit dataset
-str(clinic_visit)
+## ----eval=FALSE---------------------------------------------------------------
+#  # install.packages("remotes")
+#  remotes::install_github('bruigtp/flowchart')
 
 ## -----------------------------------------------------------------------------
-fc <- clinic_patient |> 
-  as_fc() 
+library(flowchart)
 
-class(fc)
-str(fc)
+data(safo)
 
-## -----------------------------------------------------------------------------
-fc2 <- as_fc(N = 230)
+head(safo) 
 
 ## -----------------------------------------------------------------------------
-fc |> 
+safo_fc <- safo |> 
+  as_fc()
+
+str(safo_fc, max.level = 1)
+
+## -----------------------------------------------------------------------------
+safo_fc$fc
+
+## ----include=FALSE------------------------------------------------------------
+as_fc(N = 230)
+
+## -----------------------------------------------------------------------------
+safo_fc |> 
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
-clinic_patient |> 
-  as_fc(label = "Patients included") |> 
-  fc_filter(age >= 18 & consent == "Yes", label = "Patients included", show_exc = TRUE) |> 
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |> 
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
-clinic_patient |> 
-  as_fc(label = "Patients included") |> 
-  fc_filter(N = 200, label = "Patients included", show_exc = TRUE) |> 
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |> 
+  fc_filter(N = 215, label = "Randomized", show_exc = TRUE) |> 
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
-clinic_patient |> 
-  filter(!is.na(group)) |> 
-  as_fc(label = "Patients included") |> 
-  fc_split(group) |> 
+safo |>
+  dplyr::filter(!is.na(group)) |>
+  as_fc(label = "Randomized patients") |>
+  fc_split(group) |>
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
-clinic_patient |> 
-  filter(!is.na(group)) |> 
-  as_fc(label = "Patients included") |> 
-  fc_split(N = c(100, 100), label = c("Control", "Treatment")) |> 
+safo |>
+  dplyr::filter(!is.na(group)) |>
+  as_fc(label = "Randomized patients") |>
+  fc_split(N = c(105, 110), label = c("cloxacillin plus fosfomycin", "cloxacillin alone")) |> 
+  fc_draw()
+
+## ----fig.width = 7, fig.height = 5--------------------------------------------
+safo_fc <- safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_modify(
+    ~ . |> 
+      mutate(
+        text = ifelse(id == 3, str_glue("- {sum(safo$inclusion_crit == 'Yes')} not met the inclusion criteria\n- {sum(safo$exclusion_crit == 'Yes')} met the exclusion criteria"), text)
+      )
+  ) 
+
+safo_fc |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo_fc |> 
+  fc_modify(
+    ~ . |> 
+      mutate(
+        x = case_when(
+          id == 3 ~ 0.75,
+          TRUE ~ x
+        ),
+        y = case_when(
+          id == 1 ~ 0.8,
+          id == 2 ~ 0.2,
+          TRUE ~ y
+        )
+      )
+  ) |> 
   fc_draw()
 
 ## ----fig.width = 8------------------------------------------------------------
-# Create first flowchart for patients
-fc1 <- clinic_patient |> 
-  filter(!is.na(group)) |> 
-  as_fc(label = "Patients included") |> 
-  fc_split(group)
+# Create first flowchart for ITT
+fc1 <- safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(itt == "Yes", label = "Intention to treat (ITT)")
+
+fc_draw(fc1)
 
 # Create second flowchart for visits
-fc2 <- clinic_visit |> 
-  filter(!is.na(group)) |> 
-  as_fc(label = "Number of visits") |> 
-  fc_split(group) 
+fc2 <- safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(pp == "Yes", label = "Per protocol (PP)")
+
+fc_draw(fc2)
 
 list(fc1, fc2) |> 
   fc_merge() |> 
   fc_draw()
 
 ## ----warning = FALSE, fig.width = 6, fig.height = 5---------------------------
-# Create first flowchart for patients
-fc1 <- clinic_patient |> 
-  filter(!is.na(group)) |> 
-  as_fc(label = "Patients included") |> 
-  fc_split(group)
-
-# Create second flowchart for visits
-fc2 <- clinic_visit |> 
-  filter(!is.na(group)) |> 
-  as_fc(hide = TRUE) |> 
-  fc_split(group, label = c("Number of visits (Control)", "Number of visits (Treatment)"), text_pattern = "{label}\n {n}") 
-
 list(fc1, fc2) |> 
   fc_stack() |> 
   fc_draw()
 
-## ----fig.width = 6, fig.height = 5--------------------------------------------
-fc <- clinic_patient |> 
-  as_fc(label = "Patients included") |> 
-  fc_filter(age >= 18 & consent == "Yes", label = "Patients included", show_exc = TRUE) |> 
-  fc_modify(~.x |> 
-              mutate(
-                text = case_when(
-                  id == 3 ~ str_glue("Excluded patients:
-                                     - {sum(clinic_patient$age < 18)} under-age
-                                     - {sum(clinic_patient$consent == 'No')} without a signed consent
-                                     "),
-                  TRUE ~ text
-                )
-              )) 
-
-fc |> 
-  fc_draw()
-
-## ----fig.width = 6, fig.height = 5--------------------------------------------
-fc |> 
-  fc_modify(~.x |> 
-              mutate(
-                x = case_when(
-                  id == 3 ~ 0.8,
-                  TRUE ~ x
-                ),
-                y = case_when(
-                  id == 1 ~ 0.85,
-                  id == 2 ~ 0.15,
-                  id == 3 ~ 0.5
-                )
-              )) |> 
-  fc_draw()
-
 ## ----eval = FALSE-------------------------------------------------------------
-#  clinic_patient |>
-#    filter(!is.na(group)) |>
-#    as_fc(label = "Patients included") |>
-#    fc_split(group) |>
+#  safo |>
+#    as_fc(label = "Patients assessed for eligibility") |>
+#    fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |>
 #    fc_draw() |>
 #    fc_export("flowchart.png")
 
-## ----warning = FALSE, fig.width = 7, fig.height = 6---------------------------
-clinic_patient |> 
-  as_fc(label = "Available patients") |> 
-  fc_filter(age >= 18 & consent == "Yes", label = "Patients included", show_exc = TRUE) |> 
+## ----eval = FALSE-------------------------------------------------------------
+#  safo |>
+#    as_fc(label = "Patients assessed for eligibility") |>
+#    fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |>
+#    fc_draw() |>
+#    fc_export("flowchart.png", width = 2500, height = 2000, res = 700)
+
+## ----warning = FALSE, fig.width = 7, fig.height = 7---------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
   fc_split(group) |> 
-  fc_filter(n_visits == 2, label = "Two visits available", show_exc = TRUE) |> 
-  fc_split(marker_alt, label = c("Marker not altered", "Marker altered")) |> 
+  fc_filter(itt == "Yes", label = "Included in ITT") |> 
+  fc_filter(pp == "Yes", label = "Included in PP") |> 
   fc_draw()
 
-## ----warning=FALSE, fig.width = 9, fig.height = 7-----------------------------
+## ----warning=FALSE, fig.width = 12, fig.height = 8----------------------------
 # Create labels for exclusion box:
-data(safo)
-
 label_exc <- paste(
-  c(str_glue("{sum(safo$inclusion_crit == 1 | safo$exclusion_crit == 1 | safo$decline_part == 1, na.rm = T)} excluded:"),
-    map_chr(c("inclusion_crit", "decline_part", "exclusion_crit"), ~str_glue("{sum(safo[[.x]] == 1, na.rm = TRUE)} {attr(safo[[.x]], 'label')}")),
-    map_chr(4:15, ~str_glue(" -  {sum(safo[[.x]] == 1)} {attr(safo[[.x]], 'label')}"))),
+  c(str_glue("{sum(safo$inclusion_crit == 'Yes' | safo$exclusion_crit == 'Yes' | safo$decline_part == 'Yes', na.rm = T)} excluded:"),
+    map_chr(c("inclusion_crit", "decline_part", "exclusion_crit"), ~str_glue("{sum(safo[[.x]] == 'Yes', na.rm = TRUE)} {attr(safo[[.x]], 'label')}")),
+    map_chr(4:15, ~str_glue(" -  {sum(safo[[.x]] == 'Yes')} {attr(safo[[.x]], 'label')}"))),
   collapse = "\n")
 
 label_exc <- gsub("exclusion criteria", "exclusion criteria:", label_exc)
@@ -178,21 +173,21 @@ label_exc2 <- paste(
 
 label_exc2 <- str_replace_all(label_exc2, c("nosocomial" = "nosocomial\n", "treatment" = "treatment\n"))
 
-## ----warning=FALSE, fig.width = 11, fig.height = 7----------------------------
+## ----warning=FALSE, fig.width = 12, fig.height = 9----------------------------
 safo |> 
   as_fc(label = "patients assessed for eligibility", text_pattern = "{n} {label}") |> 
   fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE,
             just_exc = "left", text_pattern_exc = "{label}", label_exc = label_exc, text_fs_exc = 7) |>
-  fc_split(group, text_pattern = "{n} {label}") |> 
-  fc_filter(itt == 1, label = "included in intention-to-treat\n population", show_exc = TRUE, 
+  fc_split(group, text_pattern = "{n} asssigned\n {label}") |> 
+  fc_filter(itt == "Yes", label = "included in intention-to-treat\n population", show_exc = TRUE, 
             text_pattern = "{n} {label}", 
             label_exc = "patient did not receive allocated\n treatment (withdrew consent)", 
             text_pattern_exc = "{n} {label}", text_fs_exc = 7) |>
-  fc_filter(pp == 1, label = "included in per-protocol\n population", show_exc = TRUE,
+  fc_filter(pp == "Yes", label = "included in per-protocol\n population", show_exc = TRUE,
             just_exc = "left", text_pattern = "{n} {label}", text_fs_exc = 7) |> 
   fc_modify(
     ~.x |> 
-      filter(id != 9) |> 
+      filter(n != 0) |> 
       mutate(
         text = case_when(id == 11 ~ label_exc1, id == 13 ~ label_exc2, TRUE ~ text),
         x = case_when(id == 3 ~ x + 0.15, id %in% c(11, 13) ~ x + 0.01, TRUE ~ x),

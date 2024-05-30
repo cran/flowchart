@@ -36,7 +36,7 @@ fc_split(
 
 \item{na.rm}{logical. Should missing values of the grouping variable be removed? Default is FALSE.}
 
-\item{show_zero}{logical. Should the levels of the grouping variable that don't have an event be shown? Default is FALSE.}
+\item{show_zero}{logical. Should the levels of the grouping variable that don't have data be shown? Default is FALSE.}
 
 \item{round_digits}{Number of digits to round percentages. It is 2 by default.}
 
@@ -57,9 +57,9 @@ List with the dataset grouped by the splitting variable and the flowchart parame
 This function allows to split the flowchart in function of the categories of a column of the database. It will generate as many boxes as categories has the column showing in each one the frequency of each category. It will additionally group the database per this column.
 }
 \examples{
-clinic_patient |>
+safo |>
   dplyr::filter(!is.na(group)) |>
-  as_fc(label = "Patients included") |>
+  as_fc(label = "Randomized patients") |>
   fc_split(group) |>
   fc_draw()
 
