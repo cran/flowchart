@@ -62,25 +62,24 @@ safo |>
   fc_split(N = c(105, 110), label = c("cloxacillin plus fosfomycin", "cloxacillin alone")) |> 
   fc_draw()
 
-## ----fig.width = 7, fig.height = 5--------------------------------------------
-safo_fc <- safo |> 
+## ----fig.width = 6, fig.height = 4--------------------------------------------
+ safo_fc <- safo |> 
   as_fc(label = "Patients assessed for eligibility") |>
-  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
-  fc_modify(
-    ~ . |> 
-      mutate(
-        text = ifelse(id == 3, str_glue("- {sum(safo$inclusion_crit == 'Yes')} not met the inclusion criteria\n- {sum(safo$exclusion_crit == 'Yes')} met the exclusion criteria"), text)
-      )
-  ) 
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) 
 
 safo_fc |> 
   fc_draw()
 
-## ----fig.width = 6, fig.height = 5--------------------------------------------
+## -----------------------------------------------------------------------------
+safo_fc |> 
+  fc_view("fc")
+
+## ----fig.width = 7, fig.height = 5--------------------------------------------
 safo_fc |> 
   fc_modify(
     ~ . |> 
       mutate(
+        text = ifelse(id == 3, str_glue("- {sum(safo$inclusion_crit == 'Yes')} not met the inclusion criteria\n- {sum(safo$exclusion_crit == 'Yes')} met the exclusion criteria"), text),
         x = case_when(
           id == 3 ~ 0.75,
           TRUE ~ x
@@ -201,5 +200,53 @@ as_fc(N = 300) |>
   fc_filter(N = 240, label = "Randomized patients", show_exc = TRUE) |> 
   fc_split(N = c(100, 80, 60), label = c("Group A", "Group B", "Group C")) |>
   fc_filter(N = c(80, 75, 50), label = "Finished the study") |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_draw(title = "SAFO flowchart")
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, perc_total = TRUE) |> 
+  fc_split(group, perc_total = TRUE, title = "Treatment", bg_fill_title = "skyblue") |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, perc_total = TRUE) |> 
+  fc_split(group, perc_total = TRUE) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, perc_total = TRUE) |> 
+  fc_split(group, offset = 0.1) |> 
+  fc_draw()
+
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, perc_total = TRUE) |> 
+  fc_split(group, offset = -0.1) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, offset_exc = 0.1) |> 
+  fc_split(group) |> 
   fc_draw()
 

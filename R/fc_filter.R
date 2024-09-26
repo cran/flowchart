@@ -6,6 +6,7 @@
 #' @param N Number of rows after the filter in case `filter` is NULL.
 #' @param label Character that will be the title of the box. By default it will be the evaluated condition.
 #' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".
+#' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.
 #' @param show_exc Logical value. If TRUE a box showing the number of excluded rows will be added to the flow chart.
 #' @param direction_exc One of "left" or "right" indicating if the exclusion box goes into the left direction or in the right direction. By default is "right".
 #' @param label_exc Character that will be the title of the added box showing the excluded patients. By default it will show "Excluded".
@@ -13,15 +14,22 @@
 #' @param sel_group Specify if the filtering has to be done only by one of the previous groups. By default is NULL.
 #' @param round_digits Number of digits to round percentages. It is 2 by default.
 #' @param just Justification for the text: left, center or right. Default is center.
-#' @param text_color Color of the text. It is black by default.
-#' @param text_fs Font size of the text. It is 8 by default.
-#' @param bg_fill Box background color. It is white by default.
-#' @param border_color Box border color. It is black by default.
+#' @param text_color Color of the text. It is black by default. See the `col` parameter for \code{\link{gpar}}.
+#' @param text_fs Font size of the text. It is 8 by default. See the `fontsize` parameter for \code{\link{gpar}}.
+#' @param text_fface Font face of the text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.
+#' @param text_ffamily Changes the font family of the text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.
+#' @param text_padding Changes the text padding inside the box. Default is 1. This number has to be greater than 0.
+#' @param bg_fill Box background color. It is white by default. See the `fill` parameter for \code{\link{gpar}}.
+#' @param border_color Box border color. It is black by default. See the `col` parameter for \code{\link{gpar}}.
 #' @param just_exc Justification for the text of the exclude box: left, center or right. Default is center.
-#' @param text_color_exc Color of the text of the exclude box. It is black by default.
-#' @param text_fs_exc Font size of the text of the exclude box. It is 6 by default.
-#' @param bg_fill_exc Exclude box background color. It is white by default.
-#' @param border_color_exc Box background color of the exclude box. It is black by default.
+#' @param text_color_exc Color of the text of the exclude box. It is black by default. See `text_color`.
+#' @param text_fs_exc Font size of the text of the exclude box. It is 6 by default. See `text_fs`.
+#' @param text_fface_exc Font face of the text of the exclude box. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}. See `text_fface`.
+#' @param text_ffamily_exc Changes the font family of the text of the exclude box. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}. See `text_ffamily`.
+#' @param text_padding_exc Changes the text padding inside the exclude box. Default is 1. This number has to be greater than 0.
+#' @param bg_fill_exc Exclude box background color. It is white by default. See `bg_fill`.
+#' @param border_color_exc Box background color of the exclude box. It is black by default. See `border_color`.
+#' @param offset_exc Amount of space to add to the distance between the box and the excluded box (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is NULL (no offset).
 #' @return List with the filtered dataset and the flowchart parameters with the resulting filtered box.
 #'
 #' @examples
@@ -34,7 +42,7 @@
 #' @importFrom rlang .data
 #' @importFrom rlang :=
 
-fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, just = "center", text_color = "black", text_fs = 8, bg_fill = "white", border_color = "black", just_exc = "center", text_color_exc = "black", text_fs_exc = 6, bg_fill_exc = "white", border_color_exc = "black") {
+fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", just_exc = "center", text_color_exc = "black", text_fs_exc = 6, text_fface_exc = 1, text_ffamily_exc = NA, text_padding_exc = 1, bg_fill_exc = "white", border_color_exc = "black", offset_exc = NULL) {
 
   is_class(object, "fc")
 
@@ -91,9 +99,10 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
   group0 <- names(attr(object$data, "groups"))
   group0 <- group0[group0 != ".rows"]
 
+  filter_to_parse <- filter
   new_fc <- object$data |>
     dplyr::summarise(
-      n = sum(eval(parse(text = filter)), na.rm = TRUE),
+      n = sum(rlang::eval_tidy(rlang::parse_expr(filter_to_parse)), na.rm = TRUE),
       N = dplyr::n()
     )
 
@@ -108,31 +117,58 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
     dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude") |> dplyr::select("x", "group"), by = "group") |>
     dplyr::group_by(.data$group) |>
     dplyr::slice_tail(n = 1) |>
-    dplyr::ungroup() |>
+    dplyr::ungroup()
+
+  if(perc_total) {
+    N_total <- unique(
+      object$fc |>
+        dplyr::filter(is.na(.data$group)) |>
+        dplyr::pull("N")
+    )
+    new_fc <- new_fc |>
+      dplyr::mutate(
+        N_total = N_total
+      )
+  } else {
+    new_fc <- new_fc |>
+      dplyr::mutate(
+        N_total = .data$N
+      )
+  }
+
+  if(text_padding == 0 | text_padding_exc == 0) {
+    stop("Text padding cannot be equal to zero")
+  }
+
+  new_fc <- new_fc |>
     dplyr::mutate(
       y = NA,
-      perc = round(.data$n*100/.data$N, round_digits),
+      perc = round(.data$n*100/.data$N_total, round_digits),
       text = as.character(stringr::str_glue(text_pattern)),
       type = "filter",
       just = just,
       text_color = text_color,
       text_fs = text_fs,
+      text_fface = text_fface,
+      text_ffamily = text_ffamily,
+      text_padding = text_padding,
       bg_fill = bg_fill,
       border_color = border_color
     ) |>
-    dplyr::ungroup()
+    dplyr::ungroup() |>
+    dplyr::select(-N_total)
 
 
   if(is.null(sel_group)) {
 
     new_fc <- new_fc |>
-      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "bg_fill", "border_color")
+      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color")
 
   } else {
 
     new_fc <- new_fc |>
       dplyr::filter(.data$group %in% sel_group) |>
-      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "bg_fill", "border_color")
+      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color")
 
   }
 
@@ -166,8 +202,8 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
     x_margin <- new_fc |>
       dplyr::mutate(
         limit = dplyr::case_when(
-          .data$x + add_x <= 0 ~ -.data$x/2,
-          .data$x + add_x >= 1 ~ (1 - .data$x)/2,
+          .data$x + add_x <= 0.05 ~ -.data$x/2,
+          .data$x + add_x >= 0.95 ~ (1 - .data$x)/2,
           TRUE ~ NA
         )
       ) |>
@@ -179,6 +215,10 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
         sign(add_x) != sign(min_add) ~ min_add*(-1),
         TRUE ~ min_add
       )
+    }
+
+    if(!is.null(offset_exc)) {
+      add_x <- add_x + offset_exc
     }
 
     #Calculate the middle distance between the box and the parent
@@ -198,17 +238,48 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
         x = .data$x + add_x,
         y = purrr::map2_dbl(.data$parent, .data$y, ~(.y + .x$y)/2),
         n = purrr::map2_int(.data$parent, .data$n, ~.x$n - .y),
-        N = purrr::map_int(.data$parent, ~.x$n),
-        perc = purrr::map2_dbl(.data$n, .data$N, ~round(.x*100/.y, round_digits)),
+        N = purrr::map_int(.data$parent, ~.x$n)
+      )
+
+    if(!is.null(offset_exc)) {
+      if(!all(new_fc2$x >= 0 & new_fc2$x <= 1)) {
+        stop("The x-coordinate cannot exceed the plot limits 0 and 1. The argument offset_exc has to be set to a smaller number.")
+      }
+    }
+
+    if(perc_total) {
+      N_total <- unique(
+        object$fc |>
+          dplyr::filter(is.na(.data$group)) |>
+          dplyr::pull("N")
+      )
+      new_fc2 <- new_fc2 |>
+        dplyr::mutate(
+          N_total = N_total
+        )
+    } else {
+      new_fc2 <- new_fc2 |>
+        dplyr::mutate(
+          N_total = .data$N
+        )
+    }
+
+
+    new_fc2 <- new_fc2 |>
+      dplyr::mutate(
+        perc = purrr::map2_dbl(.data$n, .data$N_total, ~round(.x*100/.y, round_digits)),
         text = as.character(stringr::str_glue(text_pattern_exc)),
         type = "exclude",
         just = just_exc,
         text_color = text_color_exc,
         text_fs = text_fs_exc,
+        text_fface = text_fface_exc,
+        text_ffamily = text_ffamily_exc,
+        text_padding = text_padding_exc,
         bg_fill = bg_fill_exc,
         border_color = border_color_exc
       ) |>
-      dplyr::select(-"parent")
+      dplyr::select(-"parent", -"N_total")
 
     new_fc3 <- NULL
     for(i in 1:nrow(new_fc2)) {
@@ -232,7 +303,7 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
 
   #Quan fem un filter la bbdd ha de quedar filtrada
   object$data <- object$data |>
-    dplyr::filter(eval(parse(text = filter)))
+    dplyr::filter(rlang::eval_tidy(rlang::parse_expr(filter_to_parse)))
 
   object
 

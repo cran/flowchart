@@ -10,6 +10,7 @@ fc_split(
   N = NULL,
   label = NULL,
   text_pattern = "{label}\\n {n} ({perc}\%)",
+  perc_total = FALSE,
   sel_group = NULL,
   na.rm = FALSE,
   show_zero = FALSE,
@@ -17,8 +18,20 @@ fc_split(
   just = "center",
   text_color = "black",
   text_fs = 8,
+  text_fface = 1,
+  text_ffamily = NA,
+  text_padding = 1,
   bg_fill = "white",
-  border_color = "black"
+  border_color = "black",
+  title = NULL,
+  text_color_title = "black",
+  text_fs_title = 10,
+  text_fface_title = 1,
+  text_ffamily_title = NA,
+  text_padding_title = 0.6,
+  bg_fill_title = "white",
+  border_color_title = "black",
+  offset = NULL
 )
 }
 \arguments{
@@ -32,7 +45,9 @@ fc_split(
 
 \item{text_pattern}{Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".}
 
-\item{sel_group}{Specify if the splitting has to be done only by one of the previous groups. By default is NULL.}
+\item{perc_total}{logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.}
+
+\item{sel_group}{Specify if the splitting has to be done only by one of the previous groups. Default is NULL.}
 
 \item{na.rm}{logical. Should missing values of the grouping variable be removed? Default is FALSE.}
 
@@ -46,9 +61,33 @@ fc_split(
 
 \item{text_fs}{Font size of the text. It is 8 by default.}
 
+\item{text_fface}{Font face of the text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.}
+
+\item{text_ffamily}{Changes the font family of the text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.}
+
+\item{text_padding}{Changes the text padding inside the box. Default is 1. This number has to be greater than 0.}
+
 \item{bg_fill}{Box background color. It is white by default.}
 
 \item{border_color}{Box border color. It is black by default.}
+
+\item{title}{Add a title box to the split. Default is NULL.}
+
+\item{text_color_title}{Color of the title text. It is black by default.}
+
+\item{text_fs_title}{Font size of the title text. It is 8 by default.}
+
+\item{text_fface_title}{Font face of the title text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.}
+
+\item{text_ffamily_title}{Changes the font family of the title text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.}
+
+\item{text_padding_title}{Changes the title text padding inside the box. Default is 1. This number has to be greater than 0.}
+
+\item{bg_fill_title}{Title box background color. It is white by default.}
+
+\item{border_color_title}{Title box border color. It is black by default.}
+
+\item{offset}{Amount of space to add to the distance between boxes (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is NULL (no offset).}
 }
 \value{
 List with the dataset grouped by the splitting variable and the flowchart parameters with the resulting split.
