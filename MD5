@@ -1,7 +1,6 @@
-b50820d37822c24112351ef59d4cd688 *DESCRIPTION
-4cd4c76a47505b125a19dbb69a99a245 *LICENSE
+9aa1023ca677458bd3d6eaaa8e544f5b *DESCRIPTION
 06d4ad9a3947cfbc756ebd1e8c9aadc9 *NAMESPACE
-17b80e1afb24db12f5955442283210fc *NEWS.md
+c0f76e7b2421510309eae3c6569a9f6f *NEWS.md
 1a62deef8ba03113d0f66c760d8237cf *R/as_fc.R
 3885b283a118517f20d3c1e33ebfcb8e *R/fc_draw.R
 fff4f52c464f705e9827ce3c014271ec *R/fc_export.R
@@ -13,7 +12,7 @@ cacb5362feae5881fdfea1422127477d *R/fc_stack.R
 6265e210e6b6d3f5ff46d3615a4af703 *R/fc_view.R
 f3acca8b891f112a1b7015e68f5be436 *R/safo.R
 252d44c0f38db5709b73643185f358aa *R/utils.R
-6d3a1bd3bbc6c0ff1ae7fb1e9ea7f19d *README.md
+d79ce3d606a9b4ed4c5b936df3b30eca *README.md
 c1890de44f9da1b54915006702d99f86 *build/vignette.rds
 5870d2f39d956b546e5de0bee07df632 *data/safo.rda
 c0c882f570d800166bf0cec1561336fc *inst/doc/flowchart.R
