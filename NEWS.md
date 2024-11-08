@@ -72,3 +72,16 @@
 
 * Changed license to GPL (>= 3) license
 
+# flowchart 0.6.0
+
+* Added `box_corners` argument to `fc_draw()` to allow drawing boxes with or without round corners; default set to `"round"` to avoid breaking changes (#2; @kenkomodo)
+
+* Updated `fc_export()` to include vector formats (svg, pdf) and to use `ragg` in place of `grDevices` for relevant bitmap formats (png, jpeg, tiff) for improved performance and image quality when `ragg` is installed (#16; @kenkomodo)
+
+* Methods for S3 class `fc` correctly defined
+
+* Bug in the `hide = TRUE` option in `as_fc()`
+
+* Bug when specifying `sel_group` and `N` at the same time in `fc_split()`
+
+* Bug when specifying `title` in `fc_split()` with a number of splits different than two

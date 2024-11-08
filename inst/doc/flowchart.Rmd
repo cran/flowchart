@@ -156,7 +156,7 @@ safo |>
 
 # Customize output
 
-We can customize the flowchart either with the arguments provided by each function in the process of creating it, or directly in the final output using the function `modify_fc`. 
+We can customize the flowchart either with the arguments provided by each function in the process of creating it, or directly in the final output using the function `fc_modify`. We can also change the box style for all boxes in the flowchart using an argument in `fc_draw`.
 
 ## Change function arguments
 
@@ -391,6 +391,10 @@ Arguments common to `as_fc()`, `fc_filter()` and `fc_split()`, to customise the 
  </thead>
 <tbody>
   <tr>
+   <td style="text-align:left;"> `box_corners=` </td>
+   <td style="text-align:left;"> specify corner type for all flowchart boxes. </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> `arrow_angle=` </td>
    <td style="text-align:left;"> angle of the arrow head in degrees. </td>
   </tr>
@@ -440,7 +444,7 @@ Arguments common to `as_fc()`, `fc_filter()` and `fc_split()`, to customise the 
 
 ## Function to customize the flowchart
 
-The function `modify_fc` allows the user to customise the created flowchart by modifying its parameters, which are stored in `.$fc`. 
+The function `fc_modify` allows the user to customise the created flowchart by modifying its parameters, which are stored in `.$fc`. 
 
 For example, let's customize the following flowchart:
 
@@ -520,9 +524,20 @@ list(fc1, fc2) |>
   fc_draw()
 ```
 
+We can use the argument `unite = TRUE` to connect two stacked flowcharts. For example:
+
+```{r warning=FALSE, fig.width = 6, fig.height = 5}
+fc1 <- fc1 |> 
+  fc_split(group)
+
+list(fc1, fc2) |> 
+  fc_stack(unite = TRUE) |> 
+  fc_draw()
+```
+
 # Export
 
-Once the flowchart has been drawn we can export it to the most popular image formats (png, jpeg, tiff, bmp) using `fc_export()`:
+Once the flowchart has been drawn we can export it to the most popular image formats, including both bitmap (png, jpeg, tiff, bmp) and vector (svg, pdf) formats, using `fc_export()`:
 
 ```{r eval = FALSE}
 safo |> 
@@ -539,7 +554,7 @@ safo |>
   as_fc(label = "Patients assessed for eligibility") |>
   fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
   fc_draw() |> 
-  fc_export("flowchart.png", width = 2500, height = 2000, res = 700)
+  fc_export("flowchart.png", width = 3000, height = 4000, res = 700)
 ```
 
 # Examples
@@ -599,7 +614,7 @@ label_exc2 <- str_replace_all(label_exc2, c("nosocomial" = "nosocomial\n", "trea
 
 Second, let's create and customise the flowchart using the functions in the package:
 
-```{r warning=FALSE, fig.width = 12, fig.height = 9}
+```{r warning=FALSE, fig.width = 13, fig.height = 9}
 safo |> 
   as_fc(label = "patients assessed for eligibility", text_pattern = "{n} {label}") |> 
   fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE,
@@ -627,7 +642,7 @@ safo |>
 
 In this example, we will create a flowchart without any dataframe, using the `N =` argument to manually specify the numbers to display in the boxes:
 
-```{r warning=FALSE, fig.width = 7, fig.height = 4.5}
+```{r warning=FALSE, fig.width = 7, fig.height = 6}
 as_fc(N = 300) |> 
   fc_filter(N = 240, label = "Randomized patients", show_exc = TRUE) |> 
   fc_split(N = c(100, 80, 60), label = c("Group A", "Group B", "Group C")) |>
@@ -635,9 +650,9 @@ as_fc(N = 300) |>
   fc_draw()
 ```
 
-## Example 4
+## Customization examples
 
-In this example, we will explore some of the arguments to customize the following flowchart:
+In this examples, we will explore some of the arguments to customize the following flowchart:
 
 ```{r fig.width = 6, fig.height = 5}
 safo |> 
@@ -708,5 +723,30 @@ safo |>
   as_fc(label = "Patients assessed for eligibility") |>
   fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, offset_exc = 0.1) |> 
   fc_split(group) |> 
+  fc_draw()
+```
+
+### Change Box Corner Style
+
+We can change the corner style of the flowchart boxes using the `box_corners` argument with `fc_draw`:
+
+```{r fig.width = 6, fig.height = 5}
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_draw(box_corners = "sharp")
+```
+
+### Split in one group
+
+We can perform an additional split only in one of the groups using the argument `sel_group`:
+
+```{r fig.width = 6, fig.height = 6}
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_split(N = c(50, 60), sel_group = "cloxacillin alone") |> 
   fc_draw()
 ```
