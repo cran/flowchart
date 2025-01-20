@@ -41,13 +41,13 @@ fc_split(
 
 \item{N}{Number of rows after the split in case `var` is NULL.}
 
-\item{label}{Vector of characters with the label of each category in order. It has to have as many elements as categories has the column. By default, it will put the labels of the categories.}
+\item{label}{Vector of characters or vector of expressions with the label of each category in order. It has to have as many elements as categories has the column. By default, it will put the labels of the categories.}
 
-\item{text_pattern}{Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".}
+\item{text_pattern}{Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern is placed.}
 
 \item{perc_total}{logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.}
 
-\item{sel_group}{Specify if the splitting has to be done only by one of the previous groups. Default is NULL.}
+\item{sel_group}{Select the group in which to perform the filter. The default is NULL. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.}
 
 \item{na.rm}{logical. Should missing values of the grouping variable be removed? Default is FALSE.}
 

@@ -4,14 +4,14 @@
 #' @param object fc object that we want to filter.
 #' @param filter Expression that returns a logical value and are defined in terms of the variables in the data frame. The data base will be filtered by this expression, and it will create a box showing the number of rows satisfying this condition.
 #' @param N Number of rows after the filter in case `filter` is NULL.
-#' @param label Character that will be the title of the box. By default it will be the evaluated condition.
-#' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".
+#' @param label Character or expression that will be the title of the box. By default it will be the evaluated condition.
+#' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern is placed.
 #' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.
 #' @param show_exc Logical value. If TRUE a box showing the number of excluded rows will be added to the flow chart.
 #' @param direction_exc One of "left" or "right" indicating if the exclusion box goes into the left direction or in the right direction. By default is "right".
-#' @param label_exc Character that will be the title of the added box showing the excluded patients. By default it will show "Excluded".
-#' @param text_pattern_exc Structure that will have the text in each of the excluded boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)".
-#' @param sel_group Specify if the filtering has to be done only by one of the previous groups. By default is NULL.
+#' @param label_exc Character or expression that will be the title of the added box showing the excluded patients. By default it will show "Excluded".
+#' @param text_pattern_exc Structure that will have the text in each of the excluded boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label_exc is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern_exc is placed.
+#' @param sel_group Select the group in which to perform the filter. The default is NULL. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.
 #' @param round_digits Number of digits to round percentages. It is 2 by default.
 #' @param just Justification for the text: left, center or right. Default is center.
 #' @param text_color Color of the text. It is black by default. See the `col` parameter for \code{\link{gpar}}.
@@ -62,6 +62,26 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     stop("`filter` and `N` arguments cannot be specified simultaneously.")
   }
 
+  if(!is.null(sel_group)) {
+
+    if(!all(is.na(object$fc$group))) {
+
+      if(length(sel_group) > 1) {
+        sel_group <- paste(sel_group, collapse = " // ")
+      }
+
+      if(!any(sel_group %in% object$fc$group)) {
+        stop(stringr::str_glue("The specified `sel_group` does not match any group of the flowchart. Found groups in the flowchart are:\n{paste(object$fc$group[!is.na(object$fc$group)], collapse = '\n')}"))
+      }
+
+    } else {
+
+      stop("The `sel_group' argument cannot be given because no groups are found in the flowchart, as no previous split has been performed.")
+
+    }
+
+  }
+
   if(filter == "NULL") {
     num <- length(grep("filter\\d+", names(object$data)))
     filter <- stringr::str_glue("filter{num + 1}")
@@ -72,21 +92,62 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
       }
     } else {
       if(length(N) != nrow(attr(object$data, "groups"))) {
-        stop(stringr::str_glue("The length of `N` has to match the number of groups in the dataset: {nrow(attr(object$data, 'groups'))}"))
+        if(is.null(sel_group)) {
+          stop(stringr::str_glue("The length of `N` has to match the number of groups in the dataset: {nrow(attr(object$data, 'groups'))}"))
+        } else {
+          if(length(N) != length(sel_group)) {
+            stop(stringr::str_glue("The length of `N` has to match the number of selected groups in `sel_group`"))
+          }
+        }
       }
     }
 
 
     object$data$row_number_delete <- 1:nrow(object$data)
     #select rows to be true the filter
-    nrows <- dplyr::group_rows(object$data)
-    filt_rows <- unlist(purrr::map(seq_along(nrows), function (x) {
-      if(N[x] > length(nrows[[x]])) {
-        stop("The number of rows after the filter specified in N can't be greater than the original number of rows")
-      } else {
-        nrows[[x]][1:N[x]]
+    tbl_groups <- attr(object$data, "groups")
+
+    if(!is.null(tbl_groups)) {
+
+      if(!is.null(sel_group)) {
+
+        tbl_groups <- tbl_groups |>
+          tidyr::unite("groups", -".rows", sep = " // ")
+
+        if(sel_group %in% tbl_groups$groups) {
+
+          tbl_groups <- tbl_groups |>
+            dplyr::filter(groups == sel_group)
+
+        } else {
+
+          stop(stringr::str_glue("The specified `sel_group` is not a grouping variable of the data. It has to be one of: {paste(tbl_groups$groups, collapse = ' ')}"))
+
+        }
+
       }
+
+      filt_rows <- unlist(purrr::map(1:nrow(tbl_groups), function (x) {
+        if(N[x] > length(tbl_groups$.rows[[x]])) {
+          stop("The number of rows after the filter specified in N can't be greater than the original number of rows")
+        } else {
+          tbl_groups$.rows[[x]][1:N[x]]
+        }
       }))
+
+    } else {
+
+      nrows <- 1:nrow(object$data)
+
+      if(N > length(nrows)) {
+        stop("The number of rows after the filter specified in N can't be greater than the original number of rows")
+      }
+
+      filt_rows <- nrows[1:N]
+
+    }
+
+
 
     object$data <- object$data |>
       dplyr::mutate(
@@ -117,7 +178,7 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     new_fc$group <- NA
   } else {
     new_fc <- new_fc |>
-      tidyr::unite("group", c(tidyselect::all_of(group0)), sep = ", ", na.rm = TRUE)
+      tidyr::unite("group", c(tidyselect::all_of(group0)), sep = " // ", na.rm = TRUE)
   }
 
   new_fc <- new_fc |>
@@ -151,7 +212,6 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     dplyr::mutate(
       y = NA,
       perc = round(.data$n*100/.data$N_total, round_digits),
-      text = as.character(stringr::str_glue(text_pattern)),
       type = "filter",
       just = just,
       text_color = text_color,
@@ -164,6 +224,31 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     ) |>
     dplyr::ungroup() |>
     dplyr::select(-N_total)
+
+  if(is.character(label)) {
+
+    new_fc <- new_fc |>
+      dplyr::mutate(text = as.character(stringr::str_glue(text_pattern)))
+
+  } else {
+
+    if(is.expression(label)) {
+
+      text_pattern_exp <- gsub("\\{label\\}", "", text_pattern)
+
+      new_fc <- new_fc |>
+        dplyr::mutate(text = list(substitute(atop(x, y), list(x = label[[1]], y = stringr::str_glue(text_pattern_exp)))))
+
+    } else {
+
+      stop("The label has to be either a character or an expression.")
+
+    }
+
+  }
+
+  new_fc <- new_fc |>
+    dplyr::relocate("text", .after = "perc")
 
 
   if(is.null(sel_group)) {
@@ -194,7 +279,7 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
       dplyr::mutate(old = FALSE)
   ) |>
     dplyr::mutate(
-      y = update_y(.data$y, .data$type, .data$x)
+      y = update_y(.data$y, .data$type, .data$x, .data$group)
     )
 
   #If we have to add the filter box
@@ -275,7 +360,6 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     new_fc2 <- new_fc2 |>
       dplyr::mutate(
         perc = purrr::map2_dbl(.data$n, .data$N_total, ~round(.x*100/.y, round_digits)),
-        text = as.character(stringr::str_glue(text_pattern_exc)),
         type = "exclude",
         just = just_exc,
         text_color = text_color_exc,
@@ -287,6 +371,31 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
         border_color = border_color_exc
       ) |>
       dplyr::select(-"parent", -"N_total")
+
+    if(is.character(label_exc)) {
+
+      new_fc2 <- new_fc2 |>
+        dplyr::mutate(text = as.character(stringr::str_glue(text_pattern_exc)))
+
+    } else {
+
+      if(is.expression(label_exc)) {
+
+        text_pattern_exc_exp <- gsub("\\{label\\}", "", text_pattern_exc)
+
+        new_fc2 <- new_fc2 |>
+          dplyr::mutate(text = list(substitute(atop(x, y), list(x = label_exc[[1]], y = stringr::str_glue(text_pattern_exc_exp)))))
+
+      } else {
+
+        stop("The label_exc has to be either a character or an expression.")
+
+      }
+
+    }
+
+    new_fc2 <- new_fc2 |>
+      dplyr::relocate("text", .after = "perc")
 
     new_fc3 <- NULL
     for(i in 1:nrow(new_fc2)) {
@@ -308,9 +417,25 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     ) |>
     dplyr::relocate("id")
 
-  #Quan fem un filter la bbdd ha de quedar filtrada
-  object$data <- object$data |>
-    dplyr::filter(rlang::eval_tidy(rlang::parse_expr(filter_to_parse)))
+
+  #Filter the database
+  if(is.null(sel_group)) {
+
+    object$data <- object$data |>
+      dplyr::filter(rlang::eval_tidy(rlang::parse_expr(filter_to_parse)))
+
+  } else {
+
+    #in development
+    groups <- names(attr(object$data, "groups"))
+    groups <- groups[groups != ".rows"]
+
+    filter_to_parse <- stringr::str_glue("{filter_to_parse} | temp_var_PauSatorra_12345 != '{sel_group}'")
+    object$data <- object$data |>
+      tidyr::unite("temp_var_PauSatorra_12345", c(tidyselect::all_of(groups)), sep = " // ", na.rm = TRUE, remove = FALSE) |>
+      dplyr::filter(rlang::eval_tidy(rlang::parse_expr(filter_to_parse))) |>
+      dplyr::select(-"temp_var_PauSatorra_12345")
+  }
 
   object
 

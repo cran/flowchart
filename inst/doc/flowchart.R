@@ -63,7 +63,7 @@ safo |>
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 4--------------------------------------------
- safo_fc <- safo |> 
+safo_fc <- safo |> 
   as_fc(label = "Patients assessed for eligibility") |>
   fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) 
 
@@ -182,7 +182,7 @@ label_exc2 <- str_replace_all(label_exc2, c("nosocomial" = "nosocomial\n", "trea
 
 ## ----warning=FALSE, fig.width = 13, fig.height = 9----------------------------
 safo |> 
-  as_fc(label = "patients assessed for eligibility", text_pattern = "{n} {label}") |> 
+  as_fc(label = "patients assessed for eligibility", text_pattern = "{N} {label}") |> 
   fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE,
             just_exc = "left", text_pattern_exc = "{label}", label_exc = label_exc, text_fs_exc = 7) |>
   fc_split(group, text_pattern = "{n} asssigned\n {label}") |> 
@@ -209,6 +209,16 @@ as_fc(N = 300) |>
   fc_split(N = c(100, 80, 60), label = c("Group A", "Group B", "Group C")) |>
   fc_filter(N = c(80, 75, 50), label = "Finished the study") |> 
   fc_draw()
+
+## ----warning=FALSE, fig.width = 7, fig.height = 6-----------------------------
+
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_split(N = c(50, 55, 10, 100), label = c("Group A", "Group B")) |> 
+  fc_draw()
+
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------
 safo |> 
@@ -265,11 +275,39 @@ safo |>
   fc_split(group) |> 
   fc_draw(box_corners = "sharp")
 
+## -----------------------------------------------------------------------------
+safo |> 
+  as_fc(label = expression(paste("Patients ", italic("assessed"), " for ", bold("eligibility")))) |>
+  fc_draw()
+
+## -----------------------------------------------------------------------------
+safo |> 
+  as_fc(label = expression(paste(y, " = ", alpha, " + ", beta, x))) |>
+  fc_draw()
+
 ## ----fig.width = 6, fig.height = 6--------------------------------------------
 safo |> 
   as_fc(label = "Patients assessed for eligibility") |>
   fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
   fc_split(group) |> 
   fc_split(N = c(50, 60), sel_group = "cloxacillin alone") |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 6--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_split(N = c(50, 60), sel_group = "cloxacillin alone") |> 
+  fc_filter(N = 50, sel_group = "cloxacillin plus fosfomycin") |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 7--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
+  fc_split(group) |> 
+  fc_split(N = c(50, 55, 10, 100)) |> 
+  fc_filter(N = 60, sel_group = c("cloxacillin alone", "group 2")) |> 
   fc_draw()
 
