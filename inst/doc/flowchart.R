@@ -159,7 +159,7 @@ label_exc <- paste(
 label_exc <- gsub("exclusion criteria", "exclusion criteria:", label_exc)
 
 safo1 <- safo |> 
-  filter(group == "cloxacillin alone", !is.na(reason_pp)) |> 
+  filter(group == "cloxacillin plus fosfomycin", !is.na(reason_pp)) |> 
   mutate(reason_pp = droplevels(reason_pp))
 
 label_exc1 <- paste(
@@ -167,10 +167,10 @@ label_exc1 <- paste(
     map_chr(levels(safo1$reason_pp), ~str_glue(" -  {sum(safo1$reason_pp == .x)} {.x}"))),
   collapse = "\n")
 
-label_exc1 <- str_replace_all(label_exc1, c("resistant" = "resistant\n", "blood" = "blood\n"))
+label_exc1 <- str_replace_all(label_exc1, c("nosocomial" = "nosocomial\n", "treatment" = "treatment\n"))
 
 safo2 <- safo |> 
-  filter(group == "cloxacillin plus fosfomycin", !is.na(reason_pp)) |> 
+  filter(group == "cloxacillin alone", !is.na(reason_pp)) |> 
   mutate(reason_pp = droplevels(reason_pp))
 
 label_exc2 <- paste(
@@ -178,27 +178,21 @@ label_exc2 <- paste(
     map_chr(levels(safo2$reason_pp), ~str_glue(" -  {sum(safo2$reason_pp == .x)} {.x}"))),
   collapse = "\n")
 
-label_exc2 <- str_replace_all(label_exc2, c("nosocomial" = "nosocomial\n", "treatment" = "treatment\n"))
+label_exc2 <- str_replace_all(label_exc2, c("resistant" = "resistant\n", "blood" = "blood\n"))
 
-## ----warning=FALSE, fig.width = 13, fig.height = 9----------------------------
+
+## ----warning=FALSE, fig.width = 13, fig.height = 10---------------------------
 safo |> 
   as_fc(label = "patients assessed for eligibility", text_pattern = "{N} {label}") |> 
-  fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE,
-            just_exc = "left", text_pattern_exc = "{label}", label_exc = label_exc, text_fs_exc = 7) |>
+  fc_filter(!is.na(group), label = "randomized", text_pattern = "{n} {label}", show_exc = TRUE, just_exc = "left", text_pattern_exc = "{label}", label_exc = label_exc, text_fs_exc = 7, offset_exc = 0.15) |>
   fc_split(group, text_pattern = "{n} asssigned\n {label}") |> 
-  fc_filter(itt == "Yes", label = "included in intention-to-treat\n population", show_exc = TRUE, 
-            text_pattern = "{n} {label}", 
-            label_exc = "patient did not receive allocated\n treatment (withdrew consent)", 
-            text_pattern_exc = "{n} {label}", text_fs_exc = 7) |>
-  fc_filter(pp == "Yes", label = "included in per-protocol\n population", show_exc = TRUE,
-            just_exc = "left", text_pattern = "{n} {label}", text_fs_exc = 7) |> 
+  fc_filter(itt == "Yes", label = "included in intention-to-treat\n population", show_exc = TRUE, text_pattern = "{n} {label}", label_exc = "patient did not receive allocated\n treatment (withdrew consent)", text_pattern_exc = "{n} {label}", text_fs_exc = 7) |>
+  fc_filter(pp == "Yes", label = "included in per-protocol\n population", show_exc = TRUE, just_exc = "left", text_pattern = "{n} {label}", text_fs_exc = 7) |> 
   fc_modify(
     ~.x |> 
       filter(n != 0) |> 
       mutate(
-        text = case_when(id == 11 ~ label_exc1, id == 13 ~ label_exc2, TRUE ~ text),
-        x = case_when(id == 3 ~ x + 0.15, id %in% c(11, 13) ~ x + 0.01, TRUE ~ x),
-        y = case_when(id %in% c(1, 3) ~ y + 0.05, id >= 2 ~ y - 0.05, TRUE ~ y)
+        text = case_when(id == 11 ~ label_exc1, id == 13 ~ label_exc2, TRUE ~ text)
       )
   ) |> 
   fc_draw()
@@ -225,6 +219,22 @@ safo |>
   as_fc(label = "Patients assessed for eligibility") |>
   fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE) |> 
   fc_split(group) |> 
+  fc_draw()
+
+## ----fig.width = 6, fig.height = 5--------------------------------------------
+safo |> 
+  as_fc(label = "Patients assessed for eligibility", width = 0.6, text_fs = 10, text_fface = 2, text_ffamily = "serif", text_padding = 2, bg_fill = "lightgrey") |>
+  fc_filter(!is.na(group), label = "Randomized", show_exc = TRUE, text_color = "white", bg_fill = "darkgreen", text_color_exc = "white", bg_fill_exc = "firebrick") |> 
+  fc_split(group, bg_fill = c("darkblue", "purple"), text_color = "white") |> 
+  fc_modify(
+    ~ . |> 
+      mutate(
+        y = case_when(
+          type == "init" ~ 0.8,
+          .default = y
+        )
+      )
+  ) |> 
   fc_draw()
 
 ## ----fig.width = 6, fig.height = 5--------------------------------------------

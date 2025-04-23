@@ -19,6 +19,8 @@
 #' @param text_padding Changes the text padding inside the box. Default is 1. This number has to be greater than 0.
 #' @param bg_fill Box background color. It is white by default.
 #' @param border_color Box border color. It is black by default.
+#' @param width Width of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
+#' @param height Height of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
 #' @param title Add a title box to the split. Default is NULL. It can only be used when there are only two resulting boxes after the split.
 #' @param text_color_title Color of the title text. It is black by default.
 #' @param text_fs_title Font size of the title text. It is 8 by default.
@@ -27,6 +29,8 @@
 #' @param text_padding_title Changes the title text padding inside the box. Default is 1. This number has to be greater than 0.
 #' @param bg_fill_title Title box background color. It is white by default.
 #' @param border_color_title Title box border color. It is black by default.
+#' @param width_title Width of the title box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
+#' @param height_title Height of the title box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
 #' @param offset Amount of space to add to the distance between boxes (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is NULL (no offset).
 #' @return List with the dataset grouped by the splitting variable and the flowchart parameters with the resulting split.
 #'
@@ -39,7 +43,7 @@
 #'
 #' @export
 
-fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", offset = NULL) {
+fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
 
   is_class(object, "fc")
   UseMethod("fc_split")
@@ -50,7 +54,7 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
 #' @export
 #' @importFrom rlang .data
 
-fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", offset = NULL) {
+fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
 
   var <- substitute(var)
 
@@ -59,9 +63,9 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
   }
 
   if(var == "NULL" & is.null(N)) {
-    stop("Either `var` or `N` arguments have to be specified.")
+    cli::cli_abort("A {.arg var} or {.arg N} argument must be specified.")
   }else if(var != "NULL" & !is.null(N)) {
-    stop("`var` and `N` arguments cannot be specified simultaneously.")
+    cli::cli_abort("Arguments {.arg var} and {.arg N} cannot be specified simultaneously.")
   }
 
   if(!is.null(sel_group)) {
@@ -73,12 +77,17 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       }
 
       if(!any(sel_group %in% object$fc$group)) {
-        stop(stringr::str_glue("The specified `sel_group` does not match any group of the flowchart. Found groups in the flowchart are:\n{paste(object$fc$group[!is.na(object$fc$group)], collapse = '\n')}"))
+        cli::cli_abort(
+          c(
+            "The specified {.arg sel_group} does not match any group of the flowchart.",
+            "i" = "Found groups in the flowchart are:\n{object$fc$group[!is.na(object$fc$group)]}"
+          )
+        )
       }
 
     } else {
 
-      stop("The `sel_group' argument cannot be given because no groups are found in the flowchart, as no previous split has been performed.")
+      cli::cli_abort("The {.arg sel_group} argument can't be used because no groups exist in the flowchart, as no previous split has been performed.")
 
     }
 
@@ -112,7 +121,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
 
       if(length(N) %% length(ngroups) != 0) {
 
-        stop(stringr::str_glue("The length of `N` has to be a multiple to the number of groups in the dataset: {nrow(attr(object$data, 'groups'))}"))
+        cli::cli_abort("The length of {.arg N} has to be a multiple to the number of groups in the dataset: {nrow(attr(object$data, 'groups'))}")
 
       }
 
@@ -136,7 +145,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     split_rows <- purrr::map_df(seq_along(N_list), function (x) {
 
       if(sum(N_list[[x]]) != length(nrows[[x]])) {
-        stop(paste0("The number of rows after the split specified in N has to be equal to the original number of rows", message_group))
+        cli::cli_abort("The number of rows after the split specified in N has to be equal to the original number of rows{message_group}")
       }
 
       tibble::tibble(group = paste("group", 1:nsplit)) |>
@@ -211,7 +220,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
   if(perc_total) {
     N_total <- unique(
       object$fc |>
-        dplyr::filter(is.na(.data$group)) |>
+        dplyr::filter(.data$y == max(.data$y)) |>
         dplyr::pull("N")
     )
     new_fc <- new_fc |>
@@ -225,8 +234,8 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       )
   }
 
-  if(text_padding == 0) {
-    stop("Text padding cannot be equal to zero")
+  if(any(text_padding == 0)) {
+    cli::cli_abort("Text padding cannot be equal to zero.")
   }
 
   new_fc <- new_fc |>
@@ -242,7 +251,9 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       text_ffamily = text_ffamily,
       text_padding = text_padding,
       bg_fill = bg_fill,
-      border_color = border_color
+      border_color = border_color,
+      width = width,
+      height = height
     ) |>
     dplyr::select(-N_total)
 
@@ -263,7 +274,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
 
     } else {
 
-      stop("The label has to be either a character or an expression.")
+      cli::cli_abort("The label must be a character or an expression.")
 
     }
 
@@ -292,7 +303,10 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       )
 
       if(!all(xval >= 0 & xval <= 1)) {
-        stop("The x-coordinate cannot exceed the plot limits 0 and 1. The argument offset has to be set to a smaller number.")
+        cli::cli_abort(c(
+          "The x-coordinate cannot exceed the plot limits 0 and 1.",
+          "i" = "The argument {.arg offset} has to be set to a smaller number."
+        ))
       }
 
     }
@@ -318,7 +332,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
 
       } else {
 
-        stop("The specified `sel_group` is not a grouping variable of the data. It has to be one of: {paste(new_fc$group[!is.na(new_fc$group)], collapse = ' ')}")
+        cli::cli_abort("The specified {.arg sel_group} is not a grouping variable of the data. It must be one of: {new_fc$group[!is.na(new_fc$group)]}")
 
       }
 
@@ -406,7 +420,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     )) |>
     tidyr::unite("group", c("group", "label0"), sep = " // ", na.rm = TRUE) |>
     dplyr::ungroup() |>
-    dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color")
+    dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
 
   #remove the id previous to adding the next one
   if(!is.null(object$fc)) {
@@ -458,7 +472,9 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
           text_ffamily = text_ffamily_title,
           text_padding = text_padding_title,
           bg_fill = bg_fill_title,
-          border_color = border_color_title
+          border_color = border_color_title,
+          width = width_title,
+          height = height_title
         ) |>
         dplyr::select(-"center", -"n_boxes") |>
         dplyr::relocate("y", .after = "x") |>
@@ -466,7 +482,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
 
     } else {
 
-      stop("The title argument can only be used when there are only two resulting boxes after the split.")
+      cli::cli_abort("The {.arg title} argument can only be used with exactly two resulting boxes after the split.")
 
     }
 

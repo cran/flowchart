@@ -95,3 +95,23 @@
 * When performing multiple splits in a flowchart, the group label is stored in `$fc` concatenating the values of the different groups separated by '//'
 
 * Allow expressions in the label argument to produce bold or italics text, or even formulas
+
+# flowchart 0.8.0
+
+* Solved `bug` when `perc_total = TRUE` is used together with `show_exc = TRUE`.
+
+* Solved `bug` when applying `fc_filter()` in a box with missing values.
+
+* Added `big.mark` argument to `fc_draw()` to allow users to insert a thousands separator for values of `n` and `N` printed in flowchart boxes (e.g., `big.mark = ","` results in `"1,000"`) (#26; @kenkomodo)
+
+* Updated package functions to throw warnings using `cli`; added dependency on `cli` (@kenkomodo)
+
+* Added test suite for package functions (@kenkomodo)
+
+* Updated `fc_draw()` with `canvas_bg` argument which allows the user to specify the flowchart canvas background color or to set it to `"transparent"` (#30; @kenkomodo)
+
+* Updated `fc_export()` to accept the new `canvas_bg` argument from `fc_draw()` and apply it accordingly to the exported flowchart image (#30; @kenkomodo)
+
+* Solved `bug` causing `fc_export()` to drop newer `fc_draw()` arguments when redrawing the flowchart for export (#32; @kenkomodo)
+
+* New `width` and `height` arguments for `as_fc()`, `fc_filter()` and `fc_split()` functions to manually set the size of boxes.
