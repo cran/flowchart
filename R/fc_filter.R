@@ -3,37 +3,49 @@
 #'
 #' @param object fc object that we want to filter.
 #' @param filter Expression that returns a logical value and are defined in terms of the variables in the data frame. The data base will be filtered by this expression, and it will create a box showing the number of rows satisfying this condition.
-#' @param N Number of rows after the filter in case `filter` is NULL.
+#' @param N Number of rows after the filter in case `filter` is `NULL`.
 #' @param label Character or expression that will be the title of the box. By default it will be the evaluated condition.
-#' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern is placed.
-#' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.
-#' @param show_exc Logical value. If TRUE a box showing the number of excluded rows will be added to the flow chart.
-#' @param direction_exc One of "left" or "right" indicating if the exclusion box goes into the left direction or in the right direction. By default is "right".
+#' @param text_pattern Character or expression defining the structure that will have the text in each of the boxes. It recognizes `label`, `n`, `N` and `perc` within brackets. For default it is `"{label}\n {n} ({perc}%)"`. If `text_pattern` or `label` is an expression, the `label` is always placed at the beginning of the pattern, followed by a line break where the structure specified by `text_pattern` is placed.
+#' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is `FALSE`, meaning that they will be calculated using the number at the parent leaf.
+#' @param show_exc Logical value. If `TRUE` a box showing the number of excluded rows will be added to the flow chart.
+#' @param direction_exc One of `"left"` or `"right"` indicating if the exclusion box goes into the left direction or in the right direction. By default is `"right"`.
 #' @param label_exc Character or expression that will be the title of the added box showing the excluded patients. By default it will show "Excluded".
-#' @param text_pattern_exc Structure that will have the text in each of the excluded boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label_exc is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern_exc is placed.
-#' @param sel_group Select the group in which to perform the filter. The default is NULL. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.
+#' @param text_pattern_exc Character or expression defining the structure that will have the text in the exclude box. It recognizes `label`, `n`, `N` and `perc` within brackets. For default it is `"{label}\n {n} ({perc}%)"`. If text_pattern or label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by `text_pattern_exc` is placed.
+#' @param sel_group Select the group in which to perform the filter. The default is `NULL`. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.
 #' @param round_digits Number of digits to round percentages. It is 2 by default.
-#' @param just Justification for the text: left, center or right. Default is center.
-#' @param text_color Color of the text. It is black by default. See the `col` parameter for \code{\link{gpar}}.
-#' @param text_fs Font size of the text. It is 8 by default. See the `fontsize` parameter for \code{\link{gpar}}.
-#' @param text_fface Font face of the text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.
-#' @param text_ffamily Changes the font family of the text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.
+#' @param trim_trailing_zeros Logical value. If `TRUE`, allows trailing zeros after the decimal to be trimmed (default is `FALSE`).
+#' @param just Justification for the text: `"left"`, `"center"` or `"right"`. Default is `"center"`.
+#' @param text_color Color of the text. It is `"black"` by default. See the `col` parameter for [gpar].
+#' @param text_fs Font size of the text. It is 8 by default. See the `fontsize` parameter for [gpar].
+#' @param text_fface Font face of the text. It is 1 by default. See the `fontface` parameter for [gpar].
+#' @param text_ffamily Changes the font family of the text. Default is `NA`. See the `fontfamily` parameter for [gpar].
 #' @param text_padding Changes the text padding inside the box. Default is 1. This number has to be greater than 0.
-#' @param bg_fill Box background color. It is white by default. See the `fill` parameter for \code{\link{gpar}}.
-#' @param border_color Box border color. It is black by default. See the `col` parameter for \code{\link{gpar}}.
-#' @param width Width of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param height Height of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param just_exc Justification for the text of the exclude box: left, center or right. Default is center.
-#' @param text_color_exc Color of the text of the exclude box. It is black by default. See `text_color`.
+#' @param bg_fill Box background color. It is `"white"` by default. See the `fill` parameter for [gpar].
+#' @param border_color Box border color. It is `"black"` by default. See the `col` parameter for [gpar].
+#' @param width Width of the box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param height Height of the box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param just_exc Justification for the text of the exclude box: `"left"`, `"center"` or `"right"`. Default is `"center"`.
+#' @param text_color_exc Color of the text of the exclude box. It is `"black"` by default. See `text_color`.
 #' @param text_fs_exc Font size of the text of the exclude box. It is 6 by default. See `text_fs`.
-#' @param text_fface_exc Font face of the text of the exclude box. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}. See `text_fface`.
-#' @param text_ffamily_exc Changes the font family of the text of the exclude box. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}. See `text_ffamily`.
+#' @param text_fface_exc Font face of the text of the exclude box. It is 1 by default. See the `fontface` parameter for [gpar]. See `text_fface`.
+#' @param text_ffamily_exc Changes the font family of the text of the exclude box. Default is `NA`. See the `fontfamily` parameter for [gpar]. See `text_ffamily`.
 #' @param text_padding_exc Changes the text padding inside the exclude box. Default is 1. This number has to be greater than 0.
-#' @param bg_fill_exc Exclude box background color. It is white by default. See `bg_fill`.
-#' @param border_color_exc Box background color of the exclude box. It is black by default. See `border_color`.
-#' @param offset_exc Amount of space to add to the distance between the box and the excluded box (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is NULL (no offset).
-#' @param width_exc Width of the exclude box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param height_exc Height of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
+#' @param bg_fill_exc Exclude box background color. It is `"white"` by default. See `bg_fill`.
+#' @param border_color_exc Box background color of the exclude box. It is `"black"` by default. See `border_color`.
+#' @param offset_exc Amount of space to add to the distance between the box and the excluded box (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is `NULL` (no offset).
+#' @param width_exc Width of the exclude box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param height_exc Height of the box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param title Add a title box to the filter. Default is `NULL`.
+#' @param x_title x-coordinate of the title box. Default is `0.1` (placed in the left).
+#' @param text_color_title Color of the title text. It is `"black"` by default.
+#' @param text_fs_title Font size of the title text. It is 8 by default.
+#' @param text_fface_title Font face of the title text. It is 1 by default. See the `fontface` parameter for [gpar].
+#' @param text_ffamily_title Changes the font family of the title text. Default is `NA`. See the `fontfamily` parameter for [gpar].
+#' @param text_padding_title Changes the title text padding inside the box. Default is 1. This number has to be greater than 0.
+#' @param bg_fill_title Title box background color. It is `"white"` by default.
+#' @param border_color_title Title box border color. It is `"black"` by default.
+#' @param width_title Width of the title box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param height_title Height of the title box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
 #' @return List with the filtered dataset and the flowchart parameters with the resulting filtered box.
 #'
 #' @examples
@@ -44,7 +56,7 @@
 #'
 #' @export
 
-fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, just_exc = "center", text_color_exc = "black", text_fs_exc = 6, text_fface_exc = 1, text_ffamily_exc = NA, text_padding_exc = 1, bg_fill_exc = "white", border_color_exc = "black", offset_exc = NULL, width_exc = NA, height_exc = NA) {
+fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, trim_trailing_zeros = FALSE, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, just_exc = "center", text_color_exc = "black", text_fs_exc = 6, text_fface_exc = 1, text_ffamily_exc = NA, text_padding_exc = 1, bg_fill_exc = "white", border_color_exc = "black", offset_exc = NULL, width_exc = NA, height_exc = NA, title = NULL, x_title = 0.1, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "#B3D1FF", border_color_title = "black", width_title = NA, height_title = NA) {
 
   is_class(object, "fc")
   UseMethod("fc_filter")
@@ -55,7 +67,7 @@ fc_filter <- function(object, filter = NULL, N = NULL, label = NULL, text_patter
 #' @importFrom rlang .data
 #' @importFrom rlang :=
 
-fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, just_exc = "center", text_color_exc = "black", text_fs_exc = 6, text_fface_exc = 1, text_ffamily_exc = NA, text_padding_exc = 1, bg_fill_exc = "white", border_color_exc = "black", offset_exc = NULL, width_exc = NA, height_exc = NA) {
+fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, show_exc = FALSE, direction_exc = "right", label_exc = "Excluded", text_pattern_exc = "{label}\n {n} ({perc}%)", sel_group = NULL, round_digits = 2, trim_trailing_zeros = FALSE, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, just_exc = "center", text_color_exc = "black", text_fs_exc = 6, text_fface_exc = 1, text_ffamily_exc = NA, text_padding_exc = 1, bg_fill_exc = "white", border_color_exc = "black", offset_exc = NULL, width_exc = NA, height_exc = NA, title = NULL, x_title = 0.1, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "#B3D1FF", border_color_title = "black", width_title = NA, height_title = NA) {
 
   filter <- paste(deparse(substitute(filter)), collapse = "")
   filter <- gsub("  ", "", filter)
@@ -118,15 +130,21 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
 
     if(!is.null(tbl_groups)) {
 
+      #Exclude zeros (when sel_group is used in a split previously)
+      tbl_groups <- tbl_groups |>
+        dplyr::filter(lengths(.data$.rows) != 0)
+
       if(!is.null(sel_group)) {
 
         tbl_groups <- tbl_groups |>
-          tidyr::unite("groups", -".rows", sep = " // ")
+          #Deal with missings from sel_group variables
+          dplyr::mutate(dplyr::across(!".rows", ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+          tidyr::unite("groups", -".rows", sep = " // ", na.rm = TRUE)
 
         if(sel_group %in% tbl_groups$groups) {
 
           tbl_groups <- tbl_groups |>
-            dplyr::filter(groups == sel_group)
+            dplyr::filter(.data$groups == sel_group)
 
         } else {
 
@@ -181,14 +199,16 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     dplyr::summarise(
       n = sum(rlang::eval_tidy(rlang::parse_expr(filter_to_parse)), na.rm = TRUE),
       N = dplyr::n()
-    )
+    ) |>
+    #Exclude zeros (when sel_group is used in a split previously)
+    dplyr::filter(N != 0)
 
   if(is.null(group0)) {
 
     new_fc$group <- NA
 
     new_fc <- new_fc |>
-      dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude") |> dplyr::select("x", "group"), by = "group") |>
+      dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude", !grepl("title", .data$type)) |> dplyr::select("x", "group"), by = "group") |>
       dplyr::group_by(.data$group) |>
       dplyr::slice_tail(n = 1) |>
       dplyr::ungroup()
@@ -196,9 +216,11 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
   } else {
 
     new_fc <- new_fc |>
-      dplyr::mutate_at(tidyselect::all_of(group0), ~dplyr::case_when(is.na(.) ~ "NA", .default = .))|>
-      tidyr::unite("group", c(tidyselect::all_of(group0)), sep = " // ", na.rm = TRUE) |>
-      dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude") |> dplyr::select("x", "group"), by = "group") |>
+      dplyr::ungroup() |>
+      #Deal with missings from sel_group variables
+      dplyr::mutate(dplyr::across(dplyr::all_of(group0), ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+      tidyr::unite("group", dplyr::all_of(group0), sep = " // ", na.rm = TRUE) |>
+      dplyr::left_join(object$fc |> dplyr::filter(.data$type != "exclude", !grepl("title", .data$type)) |> dplyr::select("x", "group"), by = "group") |>
       dplyr::mutate(group = factor(.data$group, levels = unique(.data$group))) |>
       dplyr::group_by(.data$group) |>
       dplyr::slice_tail(n = 1) |>
@@ -207,11 +229,10 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
 
   }
 
-
   if(perc_total) {
     N_total <- unique(
       object$fc |>
-        dplyr::filter(.data$y == max(.data$y)) |>
+        dplyr::filter(.data$y == max(.data$y), !grepl("title", .data$type)) |>
         dplyr::pull("N")
     )
     new_fc <- new_fc |>
@@ -232,7 +253,7 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
   new_fc <- new_fc |>
     dplyr::mutate(
       y = NA,
-      perc = round(.data$n*100/.data$N_total, round_digits),
+      perc = format_percentage(.data$n*100/.data$N_total, round_digits, trim_trailing_zeros),
       type = "filter",
       just = just,
       text_color = text_color,
@@ -248,58 +269,96 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     dplyr::ungroup() |>
     dplyr::select(-N_total)
 
-  if(is.character(label)) {
+  if(is.expression(label) | is.expression(text_pattern)) {
 
-    new_fc <- new_fc |>
-      dplyr::mutate(text = as.character(stringr::str_glue(text_pattern)))
+    if(is.expression(text_pattern)) {
 
-  } else {
+      text_pattern_exp <- gsub("\\{label\\}", "", as.character(text_pattern)) |>
+        stringr::str_glue(.envir = rlang::as_environment(new_fc))
 
-    if(is.expression(label)) {
+      text_pattern_exp <- tryCatch(
+        parse(text = text_pattern_exp),
+        error = \(e) {
+          list(as.character(text_pattern_exp))
+        })
+
+      new_fc <- new_fc |>
+        dplyr::mutate(text = list(substitute(atop(x, y), list(x = label[[1]], y = text_pattern_exp[[1]]))))
+
+    } else {
 
       text_pattern_exp <- gsub("\\{label\\}", "", text_pattern)
 
       new_fc <- new_fc |>
         dplyr::mutate(text = list(substitute(atop(x, y), list(x = label[[1]], y = stringr::str_glue(text_pattern_exp)))))
 
-    } else {
-
-      cli::cli_abort("The {.arg label} must be a character or an expression.")
-
     }
+
+  } else if(is.character(label) & is.character(text_pattern)) {
+
+    new_fc <- new_fc |>
+      dplyr::mutate(text = as.character(stringr::str_glue(text_pattern)))
+
+  } else {
+
+    cli::cli_abort("The {.arg label} and {.arg text_pattern} must be either characters or expressions.")
 
   }
 
-  new_fc <- new_fc |>
-    dplyr::relocate("text", .after = "perc")
+  new_fc <- if(is.expression(label)) new_fc |> dplyr::mutate(label = list(label)) else new_fc |> dplyr::mutate(label = label)
 
+  new_fc <- if(is.expression(text_pattern)) new_fc |> dplyr::mutate(text_pattern = list(text_pattern)) else new_fc |> dplyr::mutate(text_pattern = text_pattern)
+
+  new_fc <- new_fc |>
+    dplyr::relocate(c("label", "text_pattern", "text"), .after = "perc")
 
   if(is.null(sel_group)) {
 
     new_fc <- new_fc |>
-      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
+      dplyr::select("x", "y", "n", "N", "perc", "label", "text_pattern", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
 
   } else {
 
     new_fc <- new_fc |>
       dplyr::filter(.data$group %in% sel_group) |>
-      dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
+      dplyr::select("x", "y", "n", "N", "perc", "label", "text_pattern", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
 
   }
 
 
   #remove the id previous to adding the next one
   if(!is.null(object$fc)) {
+
     object$fc <- object$fc |>
-      dplyr::select(-"id")
+      dplyr::select(-"id") |>
+      dplyr::mutate(old = TRUE)
+
+    #If we select a group, it only updates the box in the group so the other group remains being the end of the flowchart
+    if(is.null(sel_group)) {
+
+      object$fc <- object$fc |>
+        dplyr::mutate(end = FALSE)
+
+    } else {
+
+      object$fc <- object$fc |>
+        dplyr::mutate(
+          end = dplyr::case_when(
+            .data$group %in% sel_group ~ FALSE,
+            .default = .data$end
+          )
+        )
+
+    }
+
+
   }
 
-
   object$fc <- rbind(
-    object$fc |>
-      dplyr::mutate(old = TRUE),
+    object$fc,
     new_fc |>
-      dplyr::mutate(old = FALSE)
+      dplyr::mutate(end = TRUE,
+                    old = FALSE)
   ) |>
     dplyr::mutate(
       y = update_y(.data$y, .data$type, .data$x, .data$group)
@@ -344,6 +403,7 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     label <- label_exc
 
     new_fc2 <- new_fc |>
+      dplyr::select(-"label") |>
       dplyr::mutate(
         parent = purrr::map(.data$x, ~object$fc |>
                               dplyr::filter(.data$x == .x, .data$old) |>
@@ -370,7 +430,7 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     if(perc_total) {
       N_total <- unique(
         object$fc |>
-          dplyr::filter(.data$y == max(.data$y)) |>
+          dplyr::filter(.data$y == max(.data$y), !grepl("title", .data$type)) |>
           dplyr::pull("N")
       )
       new_fc2 <- new_fc2 |>
@@ -384,10 +444,9 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
         )
     }
 
-
     new_fc2 <- new_fc2 |>
       dplyr::mutate(
-        perc = purrr::map2_dbl(.data$n, .data$N_total, ~round(.x*100/.y, round_digits)),
+        perc = purrr::map2_chr(.data$n, .data$N_total, ~format_percentage(.x*100/.y, round_digits, trim_trailing_zeros)),
         type = "exclude",
         just = just_exc,
         text_color = text_color_exc,
@@ -402,30 +461,48 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
       ) |>
       dplyr::select(-"parent", -"N_total")
 
-    if(is.character(label_exc)) {
+    if(is.expression(label_exc) | is.expression(text_pattern_exc)) {
 
-      new_fc2 <- new_fc2 |>
-        dplyr::mutate(text = as.character(stringr::str_glue(text_pattern_exc)))
+      if(is.expression(text_pattern_exc)) {
 
-    } else {
+        text_pattern_exc_exp <- gsub("\\{label\\}", "", as.character(text_pattern_exc)) |>
+          stringr::str_glue(.envir = rlang::as_environment(new_fc2))
 
-      if(is.expression(label_exc)) {
+        text_pattern_exc_exp <- tryCatch(
+          parse(text = text_pattern_exc_exp),
+          error = \(e) {
+            list(as.character(text_pattern_exc_exp))
+          })
+
+        new_fc2 <- new_fc2 |>
+          dplyr::mutate(text = list(substitute(atop(x, y), list(x = label_exc[[1]], y = text_pattern_exc_exp[[1]]))))
+
+      } else {
 
         text_pattern_exc_exp <- gsub("\\{label\\}", "", text_pattern_exc)
 
         new_fc2 <- new_fc2 |>
           dplyr::mutate(text = list(substitute(atop(x, y), list(x = label_exc[[1]], y = stringr::str_glue(text_pattern_exc_exp)))))
 
-      } else {
-
-        cli::cli_abort("The {.arg label_exc} has to be either a character or an expression.")
-
       }
+
+    } else if(is.character(label_exc) & is.character(text_pattern_exc)) {
+
+      new_fc2 <- new_fc2 |>
+        dplyr::mutate(text = as.character(stringr::str_glue(text_pattern_exc)))
+
+    } else {
+
+      cli::cli_abort("The {.arg label_exc} and {.arg text_pattern_exc} must be either characters or expressions.")
 
     }
 
+    new_fc2 <- if(is.expression(label_exc)) new_fc2 |> dplyr::mutate(label = list(label_exc)) else new_fc2 |> dplyr::mutate(label = label_exc)
+
+    new_fc2 <- if(is.expression(text_pattern_exc)) new_fc2 |> dplyr::mutate(text_pattern = list(text_pattern_exc)) else new_fc2 |> dplyr::mutate(text_pattern = text_pattern_exc)
+
     new_fc2 <- new_fc2 |>
-      dplyr::relocate("text", .after = "perc")
+      dplyr::relocate(c("label", "text_pattern", "text"), .after = "perc")
 
     new_fc3 <- NULL
     for(i in 1:nrow(new_fc2)) {
@@ -435,7 +512,49 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
     object$fc <- rbind(
       object$fc |> dplyr::filter(.data$old),
       new_fc3 |>
-        tibble::as_tibble()
+        tibble::as_tibble() |>
+        dplyr::mutate(
+          end = FALSE,
+          .before = "old"
+        )
+    )
+
+  }
+
+  #If we have to add a title
+  if(!is.null(title)) {
+
+    new_fc2 <- object$fc |>
+      dplyr::filter(!.data$old, .data$type == "filter") |>
+      dplyr::first() |>
+      dplyr::mutate(
+        x = x_title,
+        n = NA,
+        N = NA,
+        n = NA,
+        N = NA,
+        perc = NA,
+        label = NA,
+        text_pattern = NA,
+        text = title,
+        type = "title_filter",
+        group = NA,
+        just = "center",
+        text_color = text_color_title,
+        text_fs = text_fs_title,
+        text_fface = text_fface_title,
+        text_ffamily = text_ffamily_title,
+        text_padding = text_padding_title,
+        bg_fill = bg_fill_title,
+        border_color = border_color_title,
+        width = width_title,
+        height = height_title,
+        end = FALSE
+      )
+
+    object$fc <- rbind(
+      object$fc,
+      new_fc2
     )
 
   }
@@ -446,7 +565,6 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
       id = dplyr::row_number()
     ) |>
     dplyr::relocate("id")
-
 
   #Filter the database
   if(is.null(sel_group)) {
@@ -461,12 +579,15 @@ fc_filter.fc <- function(object, filter = NULL, N = NULL, label = NULL, text_pat
 
     filter_to_parse <- stringr::str_glue("{filter_to_parse} | temp_var_PauSatorra_12345 != '{sel_group}'")
     object$data <- object$data |>
-      tidyr::unite("temp_var_PauSatorra_12345", c(tidyselect::all_of(groups)), sep = " // ", na.rm = TRUE, remove = FALSE) |>
+      dplyr::ungroup() |>
+      #Deal with missings from sel_group variables
+      dplyr::mutate(dplyr::across(dplyr::all_of(groups), ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups))) |>
+      tidyr::unite("temp_var_PauSatorra_12345", dplyr::all_of(groups), sep = " // ", na.rm = TRUE, remove = FALSE) |>
       dplyr::filter(rlang::eval_tidy(rlang::parse_expr(filter_to_parse))) |>
       dplyr::select(-"temp_var_PauSatorra_12345")
   }
 
   object
-
 
 }

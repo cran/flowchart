@@ -3,35 +3,37 @@
 #'
 #' @param object fc object that we want to split.
 #' @param var variable column of the database from which it will be splitted.
-#' @param N Number of rows after the split in case `var` is NULL.
+#' @param N Number of rows after the split in case `var` is `NULL`.
 #' @param label Vector of characters or vector of expressions with the label of each category in order. It has to have as many elements as categories has the column. By default, it will put the labels of the categories.
-#' @param text_pattern Structure that will have the text in each of the boxes. It recognizes label, n, N and perc within brackets. For default it is "\{label\}\\n \{n\} (\{perc\}\%)". If label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern is placed.
-#' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is FALSE, meaning that they will be calculated using the number at the parent leaf.
-#' @param sel_group Select the group in which to perform the filter. The default is NULL. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.
-#' @param na.rm logical. Should missing values of the grouping variable be removed? Default is FALSE.
-#' @param show_zero logical. Should the levels of the grouping variable that don't have data be shown? Default is FALSE.
+#' @param text_pattern Character or expression defining the structure that will have the text in each of the boxes. It recognizes `label`, `n`, `N` and `perc` within brackets. For default it is `"{label}\n {n} ({perc}%)"`. If `text_pattern` or `label` is an expression, the `label` is always placed at the beginning of the pattern, followed by a line break where the structure specified by `text_pattern` is placed.
+#' @param perc_total logical. Should percentages be calculated using the total number of rows at the beginning of the flowchart? Default is `FALSE`, meaning that they will be calculated using the number at the parent leaf.
+#' @param sel_group Select the group in which to perform the filter. The default is `NULL`. Can only be used if the flowchart has previously been split. If the flowchart has more than one group, it can either be given the full name as it is stored in the `$fc` component (separated by '\\'), or it can be given as a vector with the names of each group to be selected.
+#' @param na.rm logical. Should missing values of the grouping variable be removed? Default is `FALSE`.
+#' @param show_zero logical. Should the levels of the grouping variable that don't have data be shown? Default is `FALSE`.
 #' @param round_digits Number of digits to round percentages. It is 2 by default.
-#' @param just Justification for the text: left, center or right. Default is center.
-#' @param text_color Color of the text. It is black by default.
+#' @param trim_trailing_zeros Logical value. If `TRUE`, allows trailing zeros after the decimal to be trimmed (default is `FALSE`).
+#' @param just Justification for the text: `"left"`, `"center"` or `"right"`. Default is `"center"`.
+#' @param text_color Color of the text. It is `"black"` by default.
 #' @param text_fs Font size of the text. It is 8 by default.
-#' @param text_fface Font face of the text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.
-#' @param text_ffamily Changes the font family of the text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.
+#' @param text_fface Font face of the text. It is 1 by default. See the `fontface` parameter for [gpar].
+#' @param text_ffamily Changes the font family of the text. Default is `NA`. See the `fontfamily` parameter for [gpar].
 #' @param text_padding Changes the text padding inside the box. Default is 1. This number has to be greater than 0.
-#' @param bg_fill Box background color. It is white by default.
-#' @param border_color Box border color. It is black by default.
-#' @param width Width of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param height Height of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param title Add a title box to the split. Default is NULL. It can only be used when there are only two resulting boxes after the split.
-#' @param text_color_title Color of the title text. It is black by default.
+#' @param bg_fill Box background color. It is `"white"` by default.
+#' @param border_color Box border color. It is `"black"` by default.
+#' @param width Width of the box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param height Height of the box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param title Add a title box to the split. Default is `NULL`. It can only be used when there are only two resulting boxes after the split.
+#' @param x_title x-coordinate of the title box. Default is `0.1` (placed in the left).
+#' @param text_color_title Color of the title text. It is `"black"` by default.
 #' @param text_fs_title Font size of the title text. It is 8 by default.
-#' @param text_fface_title Font face of the title text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.
-#' @param text_ffamily_title Changes the font family of the title text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.
+#' @param text_fface_title Font face of the title text. It is 1 by default. See the `fontface` parameter for [gpar].
+#' @param text_ffamily_title Changes the font family of the title text. Default is `NA`. See the `fontfamily` parameter for [gpar].
 #' @param text_padding_title Changes the title text padding inside the box. Default is 1. This number has to be greater than 0.
-#' @param bg_fill_title Title box background color. It is white by default.
-#' @param border_color_title Title box border color. It is black by default.
-#' @param width_title Width of the title box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param height_title Height of the title box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.
-#' @param offset Amount of space to add to the distance between boxes (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is NULL (no offset).
+#' @param bg_fill_title Title box background color. It is `"white"` by default.
+#' @param border_color_title Title box border color. It is `"black"` by default.
+#' @param width_title Width of the title box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param height_title Height of the title box. If `NA`, it automatically adjusts to the content (default). Must be an object of class [unit] or a number between 0 and 1.
+#' @param offset Amount of space to add to the distance between boxes (in the x coordinate). If positive, this distance will be larger. If negative, it will be smaller. This number has to be at least between 0 and 1 (plot limits) and the resulting x coordinate cannot exceed these plot limits. The default is `NULL` (no offset).
 #' @return List with the dataset grouped by the splitting variable and the flowchart parameters with the resulting split.
 #'
 #' @examples
@@ -43,7 +45,7 @@
 #'
 #' @export
 
-fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
+fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, trim_trailing_zeros = FALSE, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, x_title = 0.1, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "#B3D1FF", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
 
   is_class(object, "fc")
   UseMethod("fc_split")
@@ -54,7 +56,7 @@ fc_split <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = 
 #' @export
 #' @importFrom rlang .data
 
-fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "white", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
+fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern = "{label}\n {n} ({perc}%)", perc_total = FALSE, sel_group = NULL, na.rm = FALSE, show_zero = FALSE, round_digits = 2, trim_trailing_zeros = FALSE, just = "center", text_color = "black", text_fs = 8, text_fface = 1, text_ffamily = NA, text_padding = 1, bg_fill = "white", border_color = "black", width = NA, height = NA, title = NULL, x_title = 0.1, text_color_title = "black", text_fs_title = 10, text_fface_title = 1, text_ffamily_title = NA, text_padding_title = 0.6, bg_fill_title = "#B3D1FF", border_color_title = "black", width_title = NA, height_title = NA, offset = NULL) {
 
   var <- substitute(var)
 
@@ -102,8 +104,20 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       if(!is.null(sel_group)) {
 
         tbl_groups <- attr(object$data, "groups") |>
-          tidyr::unite("groups", -".rows", sep = " // ") |>
-          dplyr::filter(.data$groups == sel_group)
+          #Deal with missings from sel_group variables
+          dplyr::mutate(dplyr::across(!".rows", ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+          tidyr::unite("groups", -".rows", sep = " // ", na.rm = TRUE)
+
+        if(sel_group %in% tbl_groups$groups) {
+
+          tbl_groups <- tbl_groups |>
+            dplyr::filter(.data$groups == sel_group)
+
+        } else {
+
+          cli::cli_abort("The specified {.arg sel_group} is not a grouping variable of the data. It has to be one of: {tbl_groups$groups}")
+
+        }
 
         nrows <- tbl_groups$.rows
         ngroups <- sel_group
@@ -242,7 +256,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     dplyr::mutate(
       x = NA,
       y = NA,
-      perc = round(.data$n*100/.data$N_total, round_digits),
+      perc = format_percentage(.data$n*100/.data$N_total, round_digits, trim_trailing_zeros),
       type = "split",
       just = just,
       text_color = text_color,
@@ -257,14 +271,28 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     ) |>
     dplyr::select(-N_total)
 
-  if(is.null(label) | is.character(label)) {
+  if(is.null(label)) {
+    label <- levels(new_fc$label)
+  }
 
-    new_fc <- new_fc |>
-      dplyr::mutate(text = as.character(stringr::str_glue(text_pattern)))
+  if(is.expression(label) | is.expression(text_pattern)) {
 
-  } else {
+    if(is.expression(text_pattern)) {
 
-    if(is.expression(label)) {
+      text_pattern_exp <- gsub("\\{label\\}", "", as.character(text_pattern)) |>
+        stringr::str_glue(.envir = rlang::as_environment(new_fc))
+
+      text_pattern_exp <- tryCatch(
+        parse(text = text_pattern_exp),
+        error = \(e) {
+          list(as.character(text_pattern_exp))
+        })
+
+      #We have to consider the label in the environment not in the data
+      new_fc <- new_fc |>
+        dplyr::mutate(text = purrr::map(dplyr::row_number(), ~substitute(atop(x, y), list(x = .env$label[[.]], y = text_pattern_exp[[.]]))))
+
+    } else {
 
       text_pattern_exp <- gsub("\\{label\\}", "", text_pattern)
 
@@ -272,21 +300,44 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
       new_fc <- new_fc |>
         dplyr::mutate(text = purrr::map(dplyr::row_number(), ~substitute(atop(x, y), list(x = .env$label[[.]], y = stringr::str_glue(text_pattern_exp)[[.]]))))
 
-    } else {
-
-      cli::cli_abort("The label must be a character or an expression.")
-
     }
+
+  } else if(is.character(label) & is.character(text_pattern)) {
+
+    new_fc <- new_fc |>
+      dplyr::mutate(text = as.character(stringr::str_glue(text_pattern)))
+
+  } else {
+
+    cli::cli_abort("The {.arg label} and {.arg text_pattern} must be either characters or expressions.")
 
   }
 
+  new_fc <- if(is.expression(label)) new_fc |> dplyr::mutate(label = list(label)) else new_fc |> dplyr::mutate(label = label)
+
+  new_fc <- if(is.expression(text_pattern)) new_fc |> dplyr::mutate(text_pattern = list(text_pattern)) else new_fc |> dplyr::mutate(text_pattern = text_pattern)
+
   new_fc <- new_fc |>
-    dplyr::relocate("text", .after = "perc")
+    dplyr::relocate(c("label", "text_pattern", "text"), .after = "perc")
 
   if(is.null(sel_group)) {
     object$data <- object$data |>
       dplyr::group_by_at(c(group0, var), .drop = FALSE)
-  }
+  } else {
+    object$data <- object$data |>
+      dplyr::ungroup() |>
+      #Deal with missings from sel_group variables
+      dplyr::mutate(dplyr::across(dplyr::all_of(group0), ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+      tidyr::unite("temp_var_PauSatorra_12345", dplyr::all_of(group0), sep = "//", remove = FALSE, na.rm = TRUE) |>
+      dplyr::mutate("{var}_sel_group" := dplyr::case_when(
+        .data$temp_var_PauSatorra_12345 == sel_group ~ get(var),
+        .default = NA
+      )) |>
+      dplyr::select(-"temp_var_PauSatorra_12345") |>
+      dplyr::group_by_at(c(group0, paste0(var, '_sel_group')), .drop = FALSE)
+
+    cli::cli_warn("{.code object$data} has been grouped by a new variable called {.var {paste0(var, '_sel_group')}}, because {.arg sel_group} has been used in the split.")
+    }
 
   # x coordinate for the created boxes.
   #if there are no groups:
@@ -320,7 +371,10 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
   } else {
 
     new_fc <- new_fc |>
-      tidyr::unite("group", c(tidyselect::all_of(group0)), sep = " // ")
+      dplyr::ungroup() |>
+      #Deal with missings from sel_group variables
+      dplyr::mutate(dplyr::across(dplyr::all_of(group0), ~dplyr::case_when(is.na(.) & !grepl("sel_group$", dplyr::cur_column()) ~ "NA", .default = .))) |>
+      tidyr::unite("group", c(dplyr::all_of(group0)), sep = " // ", na.rm = TRUE)
 
     #Filter boxes in some groups if sel_group is specified
     if(!is.null(sel_group)) {
@@ -339,7 +393,7 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     }
 
     object_center <- object$fc |>
-      dplyr::filter(.data$type != "exclude") |>
+      dplyr::filter(.data$type != "exclude", !grepl("title", .data$type)) |>
       dplyr::group_by(.data$group) |>
       dplyr::summarise(
         center = unique(.data$x)
@@ -420,20 +474,40 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
     )) |>
     tidyr::unite("group", c("group", "label0"), sep = " // ", na.rm = TRUE) |>
     dplyr::ungroup() |>
-    dplyr::select("x", "y", "n", "N", "perc", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
+    dplyr::select("x", "y", "n", "N", "perc", "label", "text_pattern", "text", "type", "group", "just", "text_color", "text_fs", "text_fface", "text_ffamily", "text_padding", "bg_fill", "border_color", "width", "height")
 
   #remove the id previous to adding the next one
   if(!is.null(object$fc)) {
     object$fc <- object$fc |>
       dplyr::select(-"id") |>
       dplyr::mutate(old = TRUE)
+
+    #If we select a group, it only updates the box in the group so the other group remains being the end of the flowchart
+    if(is.null(sel_group)) {
+
+      object$fc <- object$fc |>
+        dplyr::mutate(end = FALSE)
+
+    } else {
+
+      object$fc <- object$fc |>
+        dplyr::mutate(
+          end = dplyr::case_when(
+            .data$group %in% sel_group ~ FALSE,
+            .default = .data$end
+          )
+        )
+
+    }
+
   }
 
   object$fc <- rbind(
     object$fc,
     new_fc |>
       tibble::as_tibble() |>
-      dplyr::mutate(old = FALSE)
+      dplyr::mutate(end = TRUE,
+                    old = FALSE)
   ) |>
     dplyr::mutate(
       y = update_y(.data$y, .data$type, .data$x, .data$group),
@@ -443,55 +517,39 @@ fc_split.fc <- function(object, var = NULL, N = NULL, label = NULL, text_pattern
 
   #If we have to add a title
   if(!is.null(title)) {
+
     new_fc2 <- object$fc |>
-      dplyr::filter(!.data$old) |>
-      dplyr::mutate(group = group_old) |>
-      dplyr::group_by(.data$group) |>
-      dplyr::summarise(n_boxes = dplyr::n(),
-                       y = unique(.data$y))
-
-    if(any(new_fc2$n_boxes == 2)) {
-
-      new_fc2 <- new_fc2 |>
-        dplyr::filter(.data$n_boxes == 2) |>
-        dplyr::left_join(object_center, by = "group") |>
-        dplyr::mutate(
-          id = NA,
-          x = .data$center,
-          n = NA,
-          N = NA,
-          n = NA,
-          N = NA,
-          perc = NA,
-          text = title,
-          type = "title_split",
-          just = "center",
-          text_color = text_color_title,
-          text_fs = text_fs_title,
-          text_fface = text_fface_title,
-          text_ffamily = text_ffamily_title,
-          text_padding = text_padding_title,
-          bg_fill = bg_fill_title,
-          border_color = border_color_title,
-          width = width_title,
-          height = height_title
-        ) |>
-        dplyr::select(-"center", -"n_boxes") |>
-        dplyr::relocate("y", .after = "x") |>
-        dplyr::relocate("group", .after = "type")
-
-    } else {
-
-      cli::cli_abort("The {.arg title} argument can only be used with exactly two resulting boxes after the split.")
-
-    }
-
+      dplyr::filter(!.data$old, .data$type == "split") |>
+      dplyr::first() |>
+      dplyr::mutate(
+        id = NA,
+        x = x_title,
+        n = NA,
+        N = NA,
+        n = NA,
+        N = NA,
+        perc = NA,
+        label = NA,
+        text_pattern = NA,
+        text = title,
+        type = "title_split",
+        group = NA,
+        just = "center",
+        text_color = text_color_title,
+        text_fs = text_fs_title,
+        text_fface = text_fface_title,
+        text_ffamily = text_ffamily_title,
+        text_padding = text_padding_title,
+        bg_fill = bg_fill_title,
+        border_color = border_color_title,
+        width = width_title,
+        height = height_title,
+        end = FALSE
+      )
 
     object$fc <- rbind(
       object$fc,
-      new_fc2 |>
-        tibble::as_tibble() |>
-        dplyr::mutate(old = FALSE)
+      new_fc2
     ) |>
       dplyr::mutate(id = dplyr::row_number()) |>
       dplyr::relocate("id")

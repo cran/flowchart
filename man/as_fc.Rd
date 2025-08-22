@@ -19,39 +19,72 @@ as_fc(
   border_color = "black",
   width = NA,
   height = NA,
-  hide = FALSE
+  hide = FALSE,
+  title = NULL,
+  x_title = 0.1,
+  text_color_title = "black",
+  text_fs_title = 10,
+  text_fface_title = 1,
+  text_ffamily_title = NA,
+  text_padding_title = 0.6,
+  bg_fill_title = "#B3D1FF",
+  border_color_title = "black",
+  width_title = NA,
+  height_title = NA
 )
 }
 \arguments{
 \item{.data}{Data frame to be initialised as a flowchart.}
 
-\item{N}{Number of rows of the study in case `.data` is NULL.}
+\item{N}{Number of rows of the study in case \code{.data} is \code{NULL}.}
 
 \item{label}{Character or expression with the text that will be shown in the box.}
 
-\item{text_pattern}{Structure that will have the text in the box. It recognizes label, n, N and perc within brackets. By default it is "\{label\}\\n\{N\}". If label is an expression, the label is always placed at the beginning of the pattern, followed by a line break where the structure specified by text_pattern is placed.}
+\item{text_pattern}{Character or expression defining the structure that will have the text in each of the boxes. It recognizes \code{label}, \code{n}, \code{N} and \code{perc} within brackets. For default it is \code{"{label}\\n {n}"}. If \code{text_pattern} or \code{label} is an expression, the \code{label} is always placed at the beginning of the pattern, followed by a line break where the structure specified by \code{text_pattern} is placed.}
 
 \item{just}{Justification for the text: left, center or right. Default is center.}
 
-\item{text_color}{Color of the text. It is black by default. See the `col` parameter for \code{\link{gpar}}.}
+\item{text_color}{Color of the text. It is \code{"black"} by default. See the \code{col} parameter for \link{gpar}.}
 
-\item{text_fs}{Font size of the text. It is 8 by default. See the `fontsize` parameter for \code{\link{gpar}}.}
+\item{text_fs}{Font size of the text. It is 8 by default. See the \code{fontsize} parameter for \link{gpar}.}
 
-\item{text_fface}{Font face of the text. It is 1 by default. See the `fontface` parameter for \code{\link{gpar}}.}
+\item{text_fface}{Font face of the text. It is 1 by default. See the \code{fontface} parameter for \link{gpar}.}
 
-\item{text_ffamily}{Changes the font family of the text. Default is NA. See the `fontfamily` parameter for \code{\link{gpar}}.}
+\item{text_ffamily}{Changes the font family of the text. Default is \code{NA}. See the \code{fontfamily} parameter for \link{gpar}.}
 
 \item{text_padding}{Changes the text padding inside the box. Default is 1. This number has to be greater than 0.}
 
-\item{bg_fill}{Box background color. It is white by default. See the `fill` parameter for \code{\link{gpar}}.}
+\item{bg_fill}{Box background color. It is white by default. See the \code{fill} parameter for \link{gpar}.}
 
-\item{border_color}{Box border color. It is black by default. See the `col` parameter for \code{\link{gpar}}.}
+\item{border_color}{Box border color. It is \code{"black"} by default. See the \code{col} parameter for \link{gpar}.}
 
-\item{width}{Width of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.}
+\item{width}{Width of the box. If \code{NA}, it automatically adjusts to the content (default). Must be an object of class \link{unit} or a number between 0 and 1.}
 
-\item{height}{Height of the box. If NA, it automatically adjusts to the content (default). Must be an object of class \code{\link{unit}} or a number between 0 and 1.}
+\item{height}{Height of the box. If \code{NA}, it automatically adjusts to the content (default). Must be an object of class \link{unit} or a number between 0 and 1.}
 
-\item{hide}{Logical value to hide the initial box or not. Default is FALSE. hide = TRUE can only be combined with fc_split().}
+\item{hide}{Logical value to hide the initial box or not. Default is FALSE. hide = TRUE can only be combined with \code{\link[=fc_split]{fc_split()}}.}
+
+\item{title}{Add a title box to the initial box. Default is \code{NULL}.}
+
+\item{x_title}{x-coordinate of the title box. Default is \code{0.1} (placed in the left).}
+
+\item{text_color_title}{Color of the title text. It is \code{"black"} by default.}
+
+\item{text_fs_title}{Font size of the title text. It is 8 by default.}
+
+\item{text_fface_title}{Font face of the title text. It is 1 by default. See the \code{fontface} parameter for \link{gpar}.}
+
+\item{text_ffamily_title}{Changes the font family of the title text. Default is \code{NA}. See the \code{fontfamily} parameter for \link{gpar}.}
+
+\item{text_padding_title}{Changes the title text padding inside the box. Default is 1. This number has to be greater than 0.}
+
+\item{bg_fill_title}{Title box background color. It is \code{"white"} by default.}
+
+\item{border_color_title}{Title box border color. It is \code{"black"} by default.}
+
+\item{width_title}{Width of the title box. If \code{NA}, it automatically adjusts to the content (default). Must be an object of class \link{unit} or a number between 0 and 1.}
+
+\item{height_title}{Height of the title box. If \code{NA}, it automatically adjusts to the content (default). Must be an object of class \link{unit} or a number between 0 and 1.}
 }
 \value{
 List with the dataset and the initialized flowchart parameters.

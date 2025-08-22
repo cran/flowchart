@@ -35,6 +35,20 @@ test_that("errors when sel_group used without groups", {
   expect_snapshot(fc_filter(fc, filter = TRUE, sel_group = "A"), error = TRUE)
 })
 
+test_that("handles filter after a sel_group", {
+  expect_warning(
+    fc <- as_fc(N = 100) |>
+      fc_split(N = c(60, 40)) |>
+      fc_split(N = c(30, 10), sel_group = "group 2") |>
+      fc_filter(N = 5, sel_group = "group 1")
+  )
+
+  expect_no_error(fc |> fc_draw())
+  expect_equal(nrow(fc$fc), 6)
+  expect_equal(fc$fc$text[6], "filter1\n5 (8.33%)")
+
+})
+
 test_that("accepts valid filter expression", {
   df <- data.frame(x = 1:10, y = c(rep(TRUE, 5), rep(FALSE, 5)))
   fc <- as_fc(df)
@@ -77,4 +91,44 @@ test_that("errors informatively with nonexistent group", {
     fc_filter(fc, filter = TRUE, sel_group = "C"),
     error = TRUE
   )
+})
+
+test_that("change label of the excluded box", {
+  fc <- as_fc(N = 10) |>
+    fc_filter(N = 2, show_exc = TRUE, label_exc = "A")
+
+  label_exc <- fc$fc$label[fc$fc$type == "exclude"]
+  expect_equal(
+    label_exc,
+    "A"
+  )
+})
+
+test_that("trimming trailing zeros", {
+
+  fc1 <- as_fc(N = 100) |>
+    fc_filter(N = 50, show_exc = TRUE, trim_trailing_zeros = FALSE)
+  perc1 <- unique(fc1$fc$perc[fc1$fc$type != "init"])
+  expect_equal(perc1, "50.00")
+
+  fc2 <- as_fc(N = 100) |>
+    fc_filter(N = 50, show_exc = TRUE, trim_trailing_zeros = TRUE)
+  perc2 <- unique(fc2$fc$perc[fc2$fc$type != "init"])
+  expect_equal(perc2, "50")
+
+})
+
+test_that("add title", {
+
+  fc <- as_fc(N = 100, label = "Assessed for eligibility", title = "Enrollment") |>
+    fc_filter(N = 80, label = "Randomized") |>
+    fc_split(N = c(40, 40), label = c("Allocated to control", "Allocated to intervention"), title = "Allocation") |>
+    fc_filter(N = c(31, 34), label = "Lost to follow-up", title = "Follow-up") |>
+    fc_filter(N = c(30, 32), label = "Analyzed", title = "Analysis")
+
+  expect_equal(unique(fc$fc$type[c(9, 12)]), "title_filter")
+  expect_equal(unique(fc$fc$x[c(9, 12)]), 0.1)
+  expect_equal(round(fc$fc$y[c(9, 12)], 3), c(0.333, 0.167))
+  expect_equal(fc$fc$text[c(9, 12)], c("Follow-up", "Analysis"))
+
 })

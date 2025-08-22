@@ -115,3 +115,23 @@
 * Solved `bug` causing `fc_export()` to drop newer `fc_draw()` arguments when redrawing the flowchart for export (#32; @kenkomodo)
 
 * New `width` and `height` arguments for `as_fc()`, `fc_filter()` and `fc_split()` functions to manually set the size of boxes.
+
+# flowchart 0.9.0
+
+* New `fc_theme()` function to set all parameters for all boxes in a flowchart at once.
+
+* Split up `flowchart` vignette into multiple different articles and updated `_pkgdown.yml` to build `dev` version of site separately while defaulting to currently released CRAN version (#37).
+
+* The `text_pattern` argument now allows expressions, so users can now format text other than the label in bold.
+
+* Now all arguments available in the graphic device function are also available in the `fc_export()` function. 
+
+* Fixed bug when `sel_group` is used in a split (#40). 
+
+* Stack flowcharts with `unite=TRUE` if there are more boxes in the last level of the first flowchart than in the first level of the second flowchart.
+
+* Fixed `bug` allowing trailing zeros to be trimmed regardless of `round_digits` argument in `fc_filter()` and `fc_split()` (@kenkomodo)
+
+* Updated `fc_draw()` with arguments to control arrow shape and color: `arrow_color`,`arrow_fill`, `arrow_lwd`, `arrow_lineend`, and `arrow_linejoin`. Updated `fc_export()` to use new arguments for flowchart image export. (#43; @kenkomodo)
+
+* A new argument, `title`, has been added to the `as_fc()` and `fc_filter()` functions to allow for the addition of titles at each step of the flowchart. The existing `title` argument in `fc_split()` has also been updated for consistency.

@@ -1,18 +1,23 @@
 #' @title fc_export
-#' @description This function allows you to export the drawn flowchart to the most popular graphic formats, including bitmap formats (png, jpeg, tiff, bmp) and vector formats (svg, pdf). For bitmap formats, it uses the `ragg` package devices when available for higher performance and higher quality output than standard raster devices provide by `grDevices`.
+#' @description This function allows you to export the drawn flowchart to the most popular graphic formats, including bitmap formats (png, jpeg, tiff, bmp) and vector formats (svg, pdf). For bitmap formats, it uses the [ragg](https://ragg.r-lib.org/) package devices when available for higher performance and higher quality output than standard raster devices provide by [grDevices].
 #'
 #' @details
-#' - **Vector Formats ('svg', 'pdf'):** These formats are ideal for graphics that need to be scaled without loss of quality. The default units for width and height are inches. If user specifies `units` other than inches ("mm" or "cm"), the function will convert the dimensions to inches using standard conversion formulas.
-#' - **Bitmap Formats ('png', 'jpeg', 'tiff', 'bmp'):** For these formats (with the exception of 'bmp'), the function uses the `ragg` package devices when available, providing higher performance and higher quality output. The default units for width and height are pixels.
-#' - **Suggested Dependencies:** For superior performance and quality bitmap outputs, it is recommended to install the `ragg` package. For exporting to 'pdf' format with enhanced features, the Cairo graphics library will be used if it is available.
+#'
+#' - **Vector Formats (`'svg'`, `'pdf'`):** These formats are ideal for graphics that need to be scaled without loss of quality. The default units for width and height are inches. If user specifies `units` other than inches (`"mm"` or` "cm"`), the function will convert the dimensions to inches using standard conversion formulas.
+#'
+#' - **Bitmap Formats (`'png'`, `'jpeg'`, `'tiff'`, `'bmp'`):** For these formats (with the exception of `"bmp"`), the function uses the [ragg](https://ragg.r-lib.org/) package devices when available, providing higher performance and higher quality output. The default `units` for `width` and `height` are pixels.
+#'
+#' - **Suggested Dependencies:** For superior performance and quality bitmap outputs, it is recommended to install the [ragg](https://ragg.r-lib.org/) package. For exporting to `"pdf"` format with enhanced features, the Cairo graphics library will be used if it is available.
 #'
 #' @param object fc object that we want to export.
 #' @param filename File name to create on disk.
 #' @param path Path of the directory to save plot to: path and filename are combined to create the fully qualified file name. Defaults to the working directory.
-#' @param format Name of the graphic device. One of 'png', 'jpeg', 'tiff', 'bmp', 'svg', or 'pdf'. If `NULL` (default), the format is guessed based on the filename extension.
+#' @param format Name of the graphic device. One of `"png"`, `"jpeg"`, `"tiff"`, `"bmp"`, `"svg"`, or `"pdf"`. If `NULL` (default), the format is guessed based on the filename extension.
 #' @param width,height Plot size in units expressed by the `units` argument. Default is 600px for bitmap formats and 6 inches for vector formats.
-#' @param units One of the following units in which the width and height arguments are expressed: "in", "cm", "mm" for vector formats and "in", "cm", "mm" or "px" for bitmap formats. If left `NULL` (default), the function will automatically use "px" for bitmap formats and "in" for vector formats.
+#' @param units One of the following units in which the width and height arguments are expressed: `"in"`, `"cm"`, `"mm"` for vector formats and `"in"`, `"cm"`, `"mm"` or `"px"` for bitmap formats. If left `NULL` (default), the function will automatically use `"px"` for bitmap formats and `"in"` for vector formats.
 #' @param res The nominal resolution in ppi which will be recorded in the bitmap file, if a positive integer. Also used for units other than the default, and to convert points to pixels. Default is 100 if exporting in bitmap format. This argument is unused if exporting to a vector format.
+#' @param ... Arguments to be passed to the device function used to save the flowchart. The available parameters will differ depending on the format (e.g., [png]).
+#'
 #' @return Invisibly returns the same object that has been given to the function.
 #'
 #' @examples
@@ -46,7 +51,7 @@
 #' }
 #' @export
 
-fc_export <- function(object, filename, path = NULL, format = NULL, width = NA, height = NA, units = NULL, res = 100) {
+fc_export <- function(object, filename, path = NULL, format = NULL, width = NA, height = NA, units = NULL, res = 100, ...) {
 
   is_class(object, "fc")
   UseMethod("fc_export")
@@ -56,7 +61,7 @@ fc_export <- function(object, filename, path = NULL, format = NULL, width = NA, 
 #' @importFrom rlang .data
 #' @export
 
-fc_export.fc <- function(object, filename, path = NULL, format = NULL, width = NA, height = NA, units = NULL, res = 100) {
+fc_export.fc <- function(object, filename, path = NULL, format = NULL, width = NA, height = NA, units = NULL, res = 100, ...) {
 
   #Get parameters from the previously drawn object
   params <- attr(object$fc, "draw")
@@ -134,30 +139,29 @@ fc_export.fc <- function(object, filename, path = NULL, format = NULL, width = N
                         "in" = height,
                         "cm" = height / 2.54,
                         "mm" = height / 25.4)
+
+    #Set arguments
+    dev.arg <- list(filename = filename,
+                     width = width_in,
+                     height = height_in,
+                     bg = params$canvas_bg)
+
+    dev.arg <- utils::modifyList(dev.arg, list(...))
+
     # Open the appropriate device
     if (format == "svg") {
-      grDevices::svg(
-        filename = filename,
-        width = width_in,
-        height = height_in,
-        bg = params$canvas_bg  # Original default for grDevices::svg() is "white"
-      )
+
+      do.call(grDevices::svg, dev.arg)
+      name_dev <- "grDevices::svg"
+
     } else if (format == "pdf") {
       if (capabilities("cairo")) {
-        grDevices::cairo_pdf(
-          filename = filename,
-          width = width_in,
-          height = height_in,
-          bg = params$canvas_bg  # Original default for grDevices::pdf() is "white"
-        )
+        do.call(grDevices::cairo_pdf, dev.arg)
+        name_dev <- "grDevices::cairo_pdf"
       } else {
         cli::cli_warn("Cairo graphics library is not available. Falling back to {.fn grDevices::pdf}.")
-        grDevices::pdf(
-          file = filename,
-          width = width_in,
-          height = height_in,
-          bg = params$canvas_bg    # Original default for grDevices::pdf() is "transparent"
-        )
+        do.call(grDevices::pdf, dev.arg)
+        name_dev <- "grDevices::pdf"
       }
     }
   } else {
@@ -187,6 +191,10 @@ fc_export.fc <- function(object, filename, path = NULL, format = NULL, width = N
                              png = ragg::agg_png,
                              jpeg = ragg::agg_jpeg,
                              tiff = ragg::agg_tiff)
+        name_dev <- switch(format,
+                           png = "ragg::agg_png",
+                           jpeg = "ragg::agg_jpeg",
+                           tiff = "ragg::agg_tiff")
       } else {
         cli::cli_warn(
           c(
@@ -198,32 +206,51 @@ fc_export.fc <- function(object, filename, path = NULL, format = NULL, width = N
                              png = grDevices::png,
                              jpeg = grDevices::jpeg,
                              tiff = grDevices::tiff)
+        name_dev <- switch(format,
+                           png = "grDevices::png",
+                           jpeg = "grDevices::jpeg",
+                           tiff = "grDevices::tiff")
       }
     } else {
       device_fun <- switch(format, bmp = grDevices::bmp)
+      name_dev <- switch(format, bmp = "grDevices::bmp")
     }
+
+    dev.arg <- list(filename = filename,
+                    width = width,
+                    height = height,
+                    units = units,
+                    res = res)
+
+    dev.arg <- utils::modifyList(dev.arg, list(...))
 
     # If canvas_bg == "transparent" or NULL and bitmap format supports transparency, set to "transparent"
     if (params$canvas_bg == "transparent" || is.null(params$canvas_bg)) {
       # Add transparency support for PNG and TIFF
       if (format %in% c("png", "tiff")) {
-        device_fun(filename = filename, width = width, height = height, units = units, res = res, bg = "transparent")
+        dev.arg <- utils::modifyList(dev.arg, list(bg = "transparent"))
+        do.call(device_fun, dev.arg)
       } else {
         # JPEG and bmp does not support transparency - warn user and fallback on device default
-        device_fun(filename = filename, width = width, height = height, units = units, res = res)
+        dev.arg <- utils::modifyList(dev.arg, list(bg = "white"))
+        do.call(device_fun, dev.arg)
         cli::cli_warn("The formats {.val jpeg} and {.val bmp} do not support transparent {.arg canvas_bg}, falling back to {.val white}")
       }
     } else {
       # Normal case with a background color ("white" or otherwise)
-      device_fun(filename = filename, width = width, height = height, units = units, res = res, bg = params$canvas_bg)
+      dev.arg <- utils::modifyList(dev.arg, list(bg = params$canvas_bg))
+      do.call(device_fun, dev.arg)
     }
   }
 
   #Redraw the plot
   object |>
-    fc_draw(big.mark = params$big.mark, box_corners = params$box_corners, arrow_angle = params$arrow_angle, arrow_length = params$arrow_length, arrow_ends = params$arrow_ends, arrow_type = params$arrow_type, title = params$title, title_x = params$title_x, title_y = params$title_y, title_color = params$title_color, title_fs = params$title_fs, title_fface = params$title_fface, title_ffamily = params$title_ffamily, canvas_bg = params$canvas_bg)
+    fc_draw(big.mark = params$big.mark, box_corners = params$box_corners, arrow_angle = params$arrow_angle, arrow_length = params$arrow_length, arrow_ends = params$arrow_ends, arrow_type = params$arrow_type, arrow_color = params$arrow_color, arrow_fill = params$arrow_fill, arrow_lwd = params$arrow_lwd, arrow_lineend = params$arrow_lineend, arrow_linejoin = params$arrow_linejoin, title = params$title, title_x = params$title_x, title_y = params$title_y, title_color = params$title_color, title_fs = params$title_fs, title_fface = params$title_fface, title_ffamily = params$title_ffamily, canvas_bg = params$canvas_bg)
 
   grDevices::dev.off()
+
+  #Give a message reporting the function used behind to save the image:
+  cli::cli_inform("The function {.fun {name_dev}} is used to export the flowchart.")
 
   invisible(object)
 }
